@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 📖 Memory Book: The Last Letter
 
 Website ulang tahun sinematik berbasis Flask — sebuah buku kenangan digital yang secara perlahan mengungkap sebuah surat panjang.
@@ -153,3 +154,6 @@ Render akan otomatis build dan deploy. Setelah selesai kamu dapat URL publik sep
 
 ## Lisensi
 Dibuat dengan ❤️ — bebas digunakan untuk keperluan personal.
+=======
+# Birthday-Web
+>>>>>>> 6b1887a8b1d6f59d58d184a07f000845c0e117ec
