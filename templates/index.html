@@ -1,249 +1,1423 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Sebuah kenangan yang diabadikan. Untuk {{ config.recipient_name }}, di hari yang istimewa.">
-  <meta name="robots" content="noindex, nofollow">
-
-  <title>Memory Book – The Last Letter &middot; {{ config.recipient_name }}</title>
-
-  <!-- Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Dancing+Script:wght@400;600;700&family=Lato:wght@300;400&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet">
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px
+    }
 
-  <!-- Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    body {
+      font-family: 'Lato', sans-serif;
+      font-weight: 300;
+      line-height: 1.8;
+      overflow-x: hidden;
+      background: #050810;
+      color: #d4cfc6;
+      cursor: default;
+    }
 
-  <!-- AOS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    ::-webkit-scrollbar {
+      width: 3px
+    }
 
-  <!-- Local CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    ::-webkit-scrollbar-track {
+      background: #050810
+    }
 
-  <script>
-    // Config dari Flask ke JavaScript
-    window.__CONFIG = {
-      recipient_name: "{{ config.recipient_name }}",
-      sender_name:    "{{ config.sender_name }}",
-      birthday_date:  "{{ config.birthday_date }}"
-    };
-  </script>
+    ::-webkit-scrollbar-thumb {
+      background: #3a2d18;
+      border-radius: 2px
+    }
+
+    /* ── CANVAS LAYER ── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      transition: opacity 1s ease
+    }
+
+    /* ── SECTIONS ── */
+    .chapter {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 7rem 2rem;
+      transition: background 1.5s ease;
+    }
+
+    /* COVER */
+    #ch-cover {
+      background: radial-gradient(ellipse at 50% 55%, #140d2b 0%, #050810 70%);
+      text-align: center;
+    }
+
+    .cover-supra {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: .7rem;
+      letter-spacing: .5em;
+      text-transform: uppercase;
+      color: #4a3a1a;
+      margin-bottom: 4rem;
+      animation: fadeUp 1.4s .4s both;
+    }
+
+    .book-3d {
+      width: 210px;
+      height: 280px;
+      margin: 0 auto 3.5rem;
+      perspective: 1400px;
+      animation: fadeUp 1.4s .9s both;
+      cursor: pointer;
+    }
+
+    .book-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateY(-28deg);
+      transition: transform 1.8s cubic-bezier(.16, 1, .3, 1);
+    }
+
+    .book-3d:hover .book-inner {
+      transform: rotateY(-14deg)
+    }
+
+    .book-inner.opening {
+      transform: rotateY(-180deg)
+    }
+
+    .book-face,
+    .book-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 2px 10px 10px 2px;
+    }
+
+    .book-face {
+      background: linear-gradient(145deg, #180f2a 0%, #0c0818 100%);
+      border: 1px solid rgba(180, 140, 60, .3);
+      box-shadow: -10px 0 28px rgba(0, 0, 0, .7), 0 0 60px rgba(160, 120, 40, .07), inset -4px 0 12px rgba(0, 0, 0, .5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem;
+      padding: 2.2rem;
+    }
+
+    .book-spine {
+      position: absolute;
+      left: -20px;
+      top: 0;
+      bottom: 0;
+      width: 20px;
+      background: linear-gradient(180deg, #180f2a, #0c0818);
+      border-radius: 3px 0 0 3px;
+      border-left: 1px solid rgba(180, 140, 60, .2);
+      border-top: 1px solid rgba(180, 140, 60, .2);
+      border-bottom: 1px solid rgba(180, 140, 60, .2);
+    }
+
+    .book-pages {
+      position: absolute;
+      right: -7px;
+      top: 5px;
+      bottom: 5px;
+      width: 10px;
+      background: repeating-linear-gradient(to bottom, #f0e8d8, #f0e8d8 1px, #e0d8c0 1px, #e0d8c0 2px);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .book-back {
+      background: linear-gradient(145deg, #0c0818, #050810);
+      border: 1px solid rgba(180, 140, 60, .12);
+      transform: rotateY(180deg);
+    }
+
+    .book-ornament {
+      font-size: 1.8rem;
+      color: #c9a84c;
+      opacity: .75;
+      text-shadow: 0 0 20px rgba(201, 168, 76, .3)
+    }
+
+    .book-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: #e8d28a;
+      letter-spacing: .1em;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .book-sub {
+      font-size: .6rem;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      color: #5a4a20
+    }
+
+    .book-glow {
+      position: absolute;
+      inset: -30px;
+      border-radius: 30px;
+      background: radial-gradient(ellipse, rgba(201, 168, 76, .06) 0%, transparent 70%);
+      animation: bookGlow 3s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes bookGlow {
+      from {
+        opacity: .5
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    .cover-cta {
+      animation: fadeUp 1.4s 1.6s both
+    }
+
+    .btn-open {
+      display: inline-flex;
+      align-items: center;
+      gap: .8rem;
+      padding: .9rem 2.8rem;
+      border: 1px solid rgba(201, 168, 76, .35);
+      background: rgba(201, 168, 76, .05);
+      color: #e8d28a;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      letter-spacing: .2em;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all .5s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-open:hover {
+      background: rgba(201, 168, 76, .12);
+      border-color: rgba(201, 168, 76, .65);
+      box-shadow: 0 0 30px rgba(201, 168, 76, .14);
+      transform: translateY(-2px)
+    }
+
+    /* ── CHAPTER THEMES ── */
+    /* Ch1: Malam Berbintang (Midnight) */
+    #ch1 {
+      background: linear-gradient(180deg, #08091a 0%, #0d1025 100%)
+    }
+
+    /* Ch2: Senja Musim Gugur */
+    #ch2 {
+      background: linear-gradient(180deg, #1a0c06 0%, #2a1208 100%)
+    }
+
+    /* Ch3: Musim Semi / Spring */
+    #ch3 {
+      background: linear-gradient(180deg, #0a1a0d 0%, #091510 100%)
+    }
+
+    /* Ch4: Musim Panas / Summer */
+    #ch4 {
+      background: linear-gradient(180deg, #0d0a1a 0%, #15102a 100%)
+    }
+
+    /* Ch5: Musim Gugur Dalam */
+    #ch5 {
+      background: linear-gradient(180deg, #1a100a 0%, #100a06 100%)
+    }
+
+    /* Ch6: Musim Dingin */
+    #ch6 {
+      background: linear-gradient(180deg, #080d14 0%, #0a1018 100%)
+    }
+
+    /* Ch7: Fajar Baru */
+    #ch7 {
+      background: radial-gradient(ellipse at 50% 80%, #1a1206 0%, #080810 70%)
+    }
+
+    /* Ch8 + Final: Taman Bunga + Bintang */
+    #ch8 {
+      background: linear-gradient(180deg, #050810 0%, #02040a 100%)
+    }
+
+    #final-page {
+      background: radial-gradient(ellipse at 50% 40%, #100d20 0%, #03040a 80%);
+      text-align: center;
+      min-height: 100vh;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5rem 2rem
+    }
+
+    #final-page.active {
+      display: flex
+    }
+
+    #ending {
+      background: #03040a;
+      min-height: 100vh;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5rem 2rem;
+      text-align: center
+    }
+
+    #ending.active {
+      display: flex
+    }
+
+    /* ── DIVIDER ── */
+    .ch-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 3rem
+    }
+
+    .div-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent, #4a3a18))
+    }
+
+    .div-line.r {
+      background: linear-gradient(90deg, var(--accent, #4a3a18), transparent)
+    }
+
+    .div-ornament {
+      color: var(--accent-bright, #c9a84c);
+      font-size: .9rem;
+      opacity: .65
+    }
+
+    /* ── CHAPTER HEADER ── */
+    .ch-label {
+      font-size: .62rem;
+      letter-spacing: .45em;
+      text-transform: uppercase;
+      color: var(--accent, #4a3a18);
+      font-family: 'Cormorant Garamond', serif;
+      margin-bottom: .8rem;
+    }
+
+    .ch-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.8rem);
+      font-weight: 300;
+      color: var(--title-color, #faf6ee);
+      line-height: 1.2;
+      margin-bottom: 3rem;
+    }
+
+    .ch-title em {
+      font-style: italic;
+      color: var(--accent-bright, #e8d28a)
+    }
+
+    /* ── SECTION INNER ── */
+    .sec-inner {
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto
+    }
+
+    /* ── PROLOG ── */
+    .prolog-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.4rem, 3vw, 2.1rem);
+      font-weight: 300;
+      color: #f0ece4;
+      line-height: 1.75;
+      max-width: 660px;
+      margin: 0 auto 3.5rem;
+      text-align: center;
+    }
+
+    /* ── CARDS GRID ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem
+    }
+
+    .card {
+      background: rgba(255, 255, 255, .022);
+      border: 1px solid var(--card-border, rgba(201, 168, 76, .1));
+      border-radius: 10px;
+      padding: 2rem 1.75rem;
+      backdrop-filter: blur(6px);
+      transition: all .5s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--card-glow, rgba(201, 168, 76, .04)), transparent);
+      opacity: 0;
+      transition: opacity .4s ease
+    }
+
+    .card:hover {
+      border-color: var(--card-border-h, rgba(201, 168, 76, .28));
+      transform: translateY(-5px);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, .35)
+    }
+
+    .card:hover::before {
+      opacity: 1
+    }
+
+    .card-icon {
+      font-size: 1.3rem;
+      color: var(--accent-bright, #c9a84c);
+      margin-bottom: 1rem;
+      opacity: .85
+    }
+
+    .card-quote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      color: #f0ece4;
+      line-height: 1.6;
+      margin-bottom: .7rem
+    }
+
+    .card-note {
+      font-size: .84rem;
+      color: #7a7268;
+      line-height: 1.6
+    }
+
+    /* ── SPRING GALLERY ── */
+    .gallery-wrap {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 12px;
+      margin-bottom: 1.8rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .5)
+    }
+
+    .gallery-track {
+      display: flex;
+      transition: transform .8s cubic-bezier(.16, 1, .3, 1)
+    }
+
+    .g-slide {
+      min-width: 100%;
+      position: relative
+    }
+
+    .g-slide img {
+      width: 100%;
+      height: 420px;
+      object-fit: cover;
+      display: block;
+      filter: brightness(.82) saturate(1.1)
+    }
+
+    .g-slide:hover img {
+      filter: brightness(.95) saturate(1.2)
+    }
+
+    .g-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 3.5rem 2.2rem 2rem;
+      background: linear-gradient(transparent, rgba(0, 0, 0, .88))
+    }
+
+    .g-caption h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-style: italic;
+      color: #f5f0e8;
+      margin-bottom: .25rem
+    }
+
+    .g-caption p {
+      font-size: .84rem;
+      color: #c9a84c;
+      letter-spacing: .07em
+    }
+
+    .g-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem
+    }
+
+    .g-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(201, 168, 76, .3);
+      background: rgba(201, 168, 76, .06);
+      color: #c9a84c;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      transition: all .3s ease;
+    }
+
+    .g-btn:hover {
+      background: rgba(201, 168, 76, .16);
+      border-color: rgba(201, 168, 76, .6)
+    }
+
+    .g-dots {
+      display: flex;
+      gap: .5rem;
+      align-items: center
+    }
+
+    .g-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4a3a18;
+      border: none;
+      cursor: pointer;
+      transition: all .3s ease
+    }
+
+    .g-dot.active {
+      background: #c9a84c;
+      transform: scale(1.3)
+    }
+
+    /* ── MEMORY LIST ── */
+    .missing-intro {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.3rem, 3vw, 1.9rem);
+      font-style: italic;
+      color: #f0ece4;
+      text-align: center;
+      max-width: 560px;
+      margin: 0 auto 4rem;
+      line-height: 1.7;
+      opacity: 0;
+      transition: opacity 2s ease;
+    }
+
+    .missing-intro.vis {
+      opacity: 1
+    }
+
+    .memory-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2.2rem;
+      max-width: 660px;
+      margin: 0 auto
+    }
+
+    .memory-item {
+      position: relative;
+      padding-left: 2.2rem;
+      opacity: 0;
+      transform: translateX(-25px);
+      transition: all .9s ease;
+    }
+
+    .memory-item.vis {
+      opacity: 1;
+      transform: translateX(0)
+    }
+
+    .memory-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: .45rem;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1px solid var(--accent-bright, #c9a84c);
+      background: rgba(201, 168, 76, .12)
+    }
+
+    .memory-item::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 14px;
+      bottom: -2.2rem;
+      width: 1px;
+      background: linear-gradient(to bottom, rgba(201, 168, 76, .28), transparent)
+    }
+
+    .memory-item:last-child::after {
+      display: none
+    }
+
+    .memory-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.12rem;
+      color: #f0ece4;
+      line-height: 1.75;
+      margin-bottom: .25rem
+    }
+
+    .memory-sub {
+      font-size: .8rem;
+      color: #7a7268;
+      font-style: italic
+    }
+
+    /* ── ENVELOPE ── */
+    .env-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 3rem
+    }
+
+    .envelope {
+      width: 290px;
+      height: 196px;
+      position: relative;
+      cursor: pointer;
+      transition: transform .4s ease
+    }
+
+    .envelope:hover {
+      transform: translateY(-7px)
+    }
+
+    .env-body {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(155deg, #f7f2e2 0%, #eee5c6 100%);
+      border-radius: 5px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, .55), 0 0 0 1px rgba(201, 168, 76, .35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .env-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, #ede5c8, #e8ddb8);
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      transform-origin: top center;
+      transition: transform .9s cubic-bezier(.16, 1, .3, 1);
+      z-index: 2
+    }
+
+    .envelope.opened .env-flap {
+      transform: rotateX(-182deg)
+    }
+
+    .env-seal {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #c9a84c, #8a6020);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      color: #180f2a;
+      z-index: 3;
+      transition: opacity .3s .5s ease
+    }
+
+    .envelope.opened .env-seal {
+      opacity: 0
+    }
+
+    .env-label {
+      text-align: center;
+      margin-top: 1rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: .85rem;
+      color: #5a4a20;
+      letter-spacing: .2em;
+      font-style: italic
+    }
+
+    .letter-content {
+      max-width: 660px;
+      margin: 0 auto;
+      padding: 3rem;
+      background: rgba(245, 240, 228, .03);
+      border: 1px solid rgba(201, 168, 76, .1);
+      border-radius: 5px;
+      opacity: 0;
+      transform: translateY(22px);
+      transition: all 1.1s ease;
+      display: none;
+    }
+
+    .letter-content.vis {
+      opacity: 1;
+      transform: translateY(0);
+      display: block
+    }
+
+    .letter-greeting {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.7rem;
+      color: #e8d28a;
+      margin-bottom: 2rem
+    }
+
+    .letter-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: #f0ece4;
+      line-height: 2
+    }
+
+    .letter-body p {
+      margin-bottom: 1.5rem
+    }
+
+    .letter-sign {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.35rem;
+      color: #e8d28a;
+      text-align: right;
+      margin-top: 2rem
+    }
+
+    /* ── TIMELINE ── */
+    .timeline {
+      position: relative;
+      max-width: 700px;
+      margin: 0 auto;
+      padding-left: 3.2rem
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 13px;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--accent, #4a3a18) 10%, var(--accent, #4a3a18) 90%, transparent)
+    }
+
+    .tl-item {
+      position: relative;
+      margin-bottom: 3.2rem;
+      opacity: 0;
+      transform: translateX(-22px);
+      transition: all .75s ease
+    }
+
+    .tl-item.vis {
+      opacity: 1;
+      transform: translateX(0)
+    }
+
+    .tl-dot {
+      position: absolute;
+      left: -2.75rem;
+      top: .38rem;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 1px solid var(--accent-bright, #c9a84c);
+      background: var(--bg, #050810);
+      transition: all .4s ease
+    }
+
+    .tl-item:hover .tl-dot {
+      background: var(--accent-bright, #c9a84c);
+      box-shadow: 0 0 14px rgba(201, 168, 76, .5)
+    }
+
+    .tl-month {
+      font-size: .62rem;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: var(--accent-bright, #c9a84c);
+      margin-bottom: .3rem
+    }
+
+    .tl-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.32rem;
+      color: #faf6ee;
+      margin-bottom: .5rem
+    }
+
+    .tl-text {
+      font-size: .88rem;
+      color: #c4bfb6;
+      line-height: 1.7
+    }
+
+    /* ── WISHES ── */
+    .wishes {
+      max-width: 660px;
+      margin: 0 auto;
+      text-align: center
+    }
+
+    .wish {
+      margin-bottom: 2.2rem;
+      opacity: 0;
+      transform: translateY(22px);
+      transition: all .85s ease
+    }
+
+    .wish.vis {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    .wish-prefix {
+      font-size: .72rem;
+      letter-spacing: .32em;
+      text-transform: uppercase;
+      color: #5a4a20;
+      margin-bottom: .5rem
+    }
+
+    .wish-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.2rem, 2.6vw, 1.65rem);
+      font-style: italic;
+      color: #f0ece4;
+      line-height: 1.55
+    }
+
+    /* ── BUTTON ── */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .8rem 2.1rem;
+      border: 1px solid rgba(201, 168, 76, .33);
+      background: rgba(201, 168, 76, .06);
+      color: #e8d28a;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: .95rem;
+      letter-spacing: .16em;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all .45s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-primary:hover {
+      background: rgba(201, 168, 76, .14);
+      border-color: rgba(201, 168, 76, .6);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .32)
+    }
+
+    /* ── CLOSING ── */
+    .closing-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      color: #f0ece4;
+      max-width: 520px;
+      margin: 0 auto 3.5rem;
+      line-height: 1.65;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 1.8s ease;
+    }
+
+    .closing-text.vis {
+      opacity: 1
+    }
+
+    /* ── FINAL PAGE ── */
+    .final-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+      margin-bottom: 3.5rem
+    }
+
+    .final-line {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 2.5vw, 1.55rem);
+      color: #f0ece4;
+      opacity: 0;
+      transform: translateY(22px);
+      transition: all 1.1s ease;
+    }
+
+    .final-line.vis {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    .final-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      font-weight: 300;
+      color: #e8d28a;
+      text-shadow: 0 0 50px rgba(201, 168, 76, .28), 0 0 100px rgba(201, 168, 76, .12);
+      opacity: 0;
+      transform: scale(.9);
+      transition: all 1.6s ease;
+      line-height: 1.2;
+    }
+
+    .final-name.vis {
+      opacity: 1;
+      transform: scale(1)
+    }
+
+    .star-field-final {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none
+    }
+
+    .flower-field-final {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 2;
+      pointer-events: none;
+      height: 35vh
+    }
+
+    /* ── ENDING ── */
+    .ending-book {
+      width: 190px;
+      height: 254px;
+      margin: 0 auto 3.5rem;
+      background: linear-gradient(145deg, #180f2a, #0c0818);
+      border: 1px solid rgba(201, 168, 76, .28);
+      border-radius: 2px 10px 10px 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: -7px 0 18px rgba(0, 0, 0, .55);
+      animation: fadeUp 1s both
+    }
+
+    .ending-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      letter-spacing: .1em;
+      color: #e8d28a;
+      text-align: center
+    }
+
+    .ending-tamat {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.6rem, 4.5vw, 2.8rem);
+      color: #f0ece4;
+      margin-bottom: 1rem;
+      opacity: 0;
+      animation: fadeUp 1s .5s both
+    }
+
+    .ending-sub {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      color: #5a4a20;
+      opacity: 0;
+      animation: fadeUp 1s 1.1s both
+    }
+
+    /* ── NAV DOTS ── */
+    #nav-dots {
+      position: fixed;
+      top: 50%;
+      right: 1.4rem;
+      transform: translateY(-50%);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: .55rem;
+      opacity: 0;
+      transition: opacity .5s ease
+    }
+
+    #nav-dots.vis {
+      opacity: 1
+    }
+
+    .ndot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      border: 1px solid #3a2d18;
+      background: transparent;
+      transition: all .4s ease;
+      cursor: pointer
+    }
+
+    .ndot.active {
+      background: #c9a84c;
+      border-color: #c9a84c;
+      box-shadow: 0 0 9px rgba(201, 168, 76, .55)
+    }
+
+    /* ── MUSIC ── */
+    #music {
+      position: fixed;
+      bottom: 1.8rem;
+      right: 1.8rem;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      background: rgba(5, 8, 16, .85);
+      border: 1px solid rgba(201, 168, 76, .18);
+      backdrop-filter: blur(14px);
+      border-radius: 50px;
+      padding: .45rem 1rem .45rem .45rem;
+      opacity: 0;
+      transform: translateY(18px);
+      transition: all .5s ease;
+    }
+
+    #music.vis {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    #music-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(201, 168, 76, .38);
+      background: rgba(201, 168, 76, .1);
+      color: #c9a84c;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      transition: all .3s ease
+    }
+
+    #music-btn:hover {
+      background: rgba(201, 168, 76, .2)
+    }
+
+    .meq {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 16px
+    }
+
+    .meq span {
+      width: 3px;
+      background: #c9a84c;
+      border-radius: 2px;
+      opacity: .7;
+      animation: eq .85s ease infinite alternate
+    }
+
+    .meq span:nth-child(1) {
+      height: 6px;
+      animation-delay: 0s
+    }
+
+    .meq span:nth-child(2) {
+      height: 14px;
+      animation-delay: .22s
+    }
+
+    .meq span:nth-child(3) {
+      height: 10px;
+      animation-delay: .44s
+    }
+
+    .meq.paused span {
+      animation-play-state: paused;
+      height: 4px;
+      opacity: .28
+    }
+
+    @keyframes eq {
+      from {
+        transform: scaleY(.3)
+      }
+
+      to {
+        transform: scaleY(1)
+      }
+    }
+
+    .mlbl {
+      font-size: .68rem;
+      letter-spacing: .12em;
+      color: #4a3a18;
+      font-family: 'Cormorant Garamond', serif
+    }
+
+    /* ── LOADING ── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #050810;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      transition: opacity .9s ease, visibility .9s ease;
+    }
+
+    #loading.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none
+    }
+
+    .lquill {
+      width: 50px;
+      height: 50px;
+      opacity: .6
+    }
+
+    .ltext {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: #4a3a18
+    }
+
+    .lbar {
+      width: 170px;
+      height: 1px;
+      background: #0d1025;
+      position: relative;
+      overflow: hidden
+    }
+
+    .lbar::after {
+      content: '';
+      position: absolute;
+      left: -100%;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+      animation: lslide 1.7s ease infinite
+    }
+
+    @keyframes lslide {
+      to {
+        left: 100%
+      }
+    }
+
+    /* ── MISC ── */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(32px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    @media(max-width:768px) {
+      .chapter {
+        padding: 4.5rem 1.5rem
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr
+      }
+
+      .g-slide img {
+        height: 260px
+      }
+
+      #nav-dots {
+        display: none
+      }
+
+      .letter-content {
+        padding: 2rem 1.5rem
+      }
+
+      .timeline {
+        padding-left: 2.6rem
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- Stars -->
-  <canvas id="stars-canvas"></canvas>
-
-  <!-- Page Transition Overlay -->
-  <div id="page-transition"></div>
-
-  <!-- ═══════════════════════════════════════
-       LOADING SCREEN
-  ══════════════════════════════════════════ -->
-  <div id="loading-screen">
-    <svg class="loading-quill" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M40 4C40 4 36 12 28 20C20 28 8 36 4 44" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M4 44C4 44 12 38 20 34C24 32 28 28 40 4" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.4" stroke-linecap="round"/>
-      <circle cx="40" cy="4" r="3" fill="#c9a84c" opacity="0.6"/>
+  <!-- Loading -->
+  <div id="loading">
+    <svg class="lquill" viewBox="0 0 48 48" fill="none">
+      <path d="M40 4C40 4 36 12 28 20C20 28 8 36 4 44" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" />
+      <path d="M4 44C4 44 12 38 20 34C24 32 28 28 40 4" stroke="#c9a84c" stroke-width="1" stroke-opacity=".35"
+        stroke-linecap="round" />
+      <circle cx="40" cy="4" r="3" fill="#c9a84c" opacity=".55" />
     </svg>
-    <div class="loading-text">Membuka kenangan</div>
-    <div class="loading-bar"></div>
+    <div class="ltext">Membuka kenangan</div>
+    <div class="lbar"></div>
   </div>
 
-  <!-- ═══════════════════════════════════════
-       MUSIC PLAYER
-  ══════════════════════════════════════════ -->
-  <div id="music-player">
-    <button id="music-btn" aria-label="Play / Pause music">
-      <i class="fas fa-music"></i>
-    </button>
-    <div class="music-eq paused">
-      <span></span><span></span><span></span>
-    </div>
-    <span class="music-label">Ambient</span>
+  <!-- BG Canvas (atmospheric particles) -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Music -->
+  <div id="music">
+    <button id="music-btn" onclick="toggleMusic()">♪</button>
+    <div class="meq paused" id="meq"><span></span><span></span><span></span></div>
+    <span class="mlbl">Ambient</span>
   </div>
 
-  <!-- ═══════════════════════════════════════
-       PAGE PROGRESS
-  ══════════════════════════════════════════ -->
-  <nav id="page-progress" aria-label="Navigasi halaman"></nav>
+  <!-- Nav dots -->
+  <nav id="nav-dots"></nav>
 
-  <!-- ═══════════════════════════════════════
-       LIGHTBOX
-  ══════════════════════════════════════════ -->
-  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Tampilan foto besar">
-    <img class="lightbox-img" src="" alt="">
-    <button class="lightbox-close" aria-label="Tutup"><i class="fas fa-times"></i></button>
-  </div>
-
-  <!-- ═══════════════════════════════════════
-       COVER
-  ══════════════════════════════════════════ -->
-  <section id="cover" class="section" style="display:none">
-    <div class="cover-tagline">
-      Untuk seseorang yang hari ini bertambah usia
-    </div>
-
-    <div class="book-container" onclick="openBook()">
-      <div class="book">
+  <!-- ══════════════════════════════════
+     COVER
+════════════════════════════════════ -->
+  <section id="ch-cover" class="chapter" style="display:none">
+    <div class="cover-supra">Untuk seseorang yang hari ini bertambah usia</div>
+    <div class="book-3d" onclick="openBook()">
+      <div class="book-inner" id="book-inner">
         <div class="book-spine"></div>
         <div class="book-face">
-          <div class="book-ornament"><i class="fas fa-feather-alt"></i></div>
-          <div class="book-title">Memory Book</div>
-          <div class="book-subtitle">The Last Letter</div>
+          <div class="book-ornament">✦</div>
+          <div class="book-title">Memory Book<br><span class="book-sub">The Last Letter</span></div>
+          <div class="book-glow"></div>
         </div>
-        <div class="book-back"></div>
         <div class="book-pages"></div>
-        <div class="book-glow"></div>
+        <div class="book-back"></div>
       </div>
     </div>
-
     <div class="cover-cta">
-      <button class="btn-open-book" onclick="openBook()">
-        <i class="fas fa-book-open"></i>
-        Buka Buku
-      </button>
+      <button class="btn-open" onclick="openBook()">✦ &nbsp;Buka Buku</button>
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       BAB 1: PROLOG
-  ══════════════════════════════════════════ -->
-  <section id="chapter1" class="section">
-    <div class="section-inner">
-      <div class="section-divider">
-        <div class="divider-line"></div>
-        <span class="divider-ornament"><i class="fas fa-feather-alt"></i></span>
-        <div class="divider-line right"></div>
+  <!-- ══════════════════════════════════
+     BAB 1: PROLOG — Malam Berbintang
+     Suasana: langit malam gelap, bintang perak, desau angin dingin
+════════════════════════════════════ -->
+  <section id="ch1" class="chapter" style="--accent:#2a3a5a;--accent-bright:#7aafee;--title-color:#e8f0fa;--bg:#08091a">
+    <div class="sec-inner">
+      <div class="ch-divider">
+        <div class="div-line"></div>
+        <div class="div-ornament">✦</div>
+        <div class="div-line r"></div>
       </div>
-
-      <div class="chapter-label">Bab I</div>
-      <h2 class="chapter-title">Prolog</h2>
-
-      <div class="prolog-text" data-aos="fade-up">
-        <span id="typed-prolog"></span>
+      <div class="ch-label">Bab I</div>
+      <h2 class="ch-title">Prolog</h2>
+      <div class="prolog-text">
+        Aku sempat berpikir untuk menulis ucapan yang biasa saja.<br><br>
+        Tapi rasanya ada terlalu banyak hal yang ingin kukatakan.<br><br>
+        <em>Jadi kutulis ini untukmu.</em>
       </div>
-
-      <div data-aos="fade-up" data-aos-delay="400" style="text-align:center">
-        <button class="btn-primary" onclick="scrollToSection('chapter2')">
-          Lanjutkan &nbsp;<i class="fas fa-chevron-down"></i>
-        </button>
+      <div style="text-align:center">
+        <button class="btn-primary" onclick="goTo('ch2')">Lanjutkan &nbsp;↓</button>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       BAB 2: TENTANG DIRIMU
-  ══════════════════════════════════════════ -->
-  <section id="chapter2" class="section">
-    <div class="section-inner">
-      <div class="section-divider">
-        <div class="divider-line"></div>
-        <span class="divider-ornament"><i class="fas fa-star"></i></span>
-        <div class="divider-line right"></div>
+  <!-- ══════════════════════════════════
+     BAB 2: TENTANG DIRIMU — Senja Musim Gugur
+     Suasana: daun gugur merah-oranye, angin hangat, langit senja membara
+════════════════════════════════════ -->
+  <section id="ch2" class="chapter"
+    style="--accent:#5a2a08;--accent-bright:#e8843a;--title-color:#fcebd8;--card-border:rgba(232,132,58,.12);--card-glow:rgba(232,132,58,.05);--card-border-h:rgba(232,132,58,.3)">
+    <div class="sec-inner">
+      <div class="ch-divider">
+        <div class="div-line"></div>
+        <div class="div-ornament">🍂</div>
+        <div class="div-line r"></div>
       </div>
-
-      <div class="chapter-label">Bab II</div>
-      <h2 class="chapter-title">Tentang <em>Dirimu</em></h2>
-
+      <div class="ch-label">Bab II</div>
+      <h2 class="ch-title" style="--accent-bright:#e8a060">Tentang <em>Dirimu</em></h2>
       <div class="cards-grid">
-        <div class="card" data-aos="fade-up" data-aos-delay="0">
-          <div class="card-icon"><i class="fas fa-moon"></i></div>
+        <div class="card">
+          <div class="card-icon" style="color:#e8843a">☽</div>
           <div class="card-quote">"Kamu mungkin tidak sadar..."</div>
-          <div class="card-note">Bahwa ada hari-hari yang terasa lebih ringan hanya karena keberadaanmu di dalamnya.</div>
+          <div class="card-note">Bahwa ada hari-hari yang terasa lebih ringan hanya karena keberadaanmu di dalamnya.
+          </div>
         </div>
-
-        <div class="card" data-aos="fade-up" data-aos-delay="120">
-          <div class="card-icon"><i class="fas fa-heart"></i></div>
+        <div class="card">
+          <div class="card-icon" style="color:#e8843a">♡</div>
           <div class="card-quote">"Kamu mungkin tidak pernah menyadarinya..."</div>
           <div class="card-note">Tapi banyak hal baik terjadi bukan karena kebetulan — melainkan karena kamu ada.</div>
         </div>
-
-        <div class="card" data-aos="fade-up" data-aos-delay="240">
-          <div class="card-icon"><i class="fas fa-sun"></i></div>
+        <div class="card">
+          <div class="card-icon" style="color:#e8843a">☀</div>
           <div class="card-quote">"Caramu ada itu unik."</div>
-          <div class="card-note">Bukan karena kamu sempurna. Tapi karena kamu tidak pernah berpura-pura menjadi orang lain.</div>
+          <div class="card-note">Bukan karena kamu sempurna. Tapi karena kamu tidak pernah berpura-pura menjadi orang
+            lain.</div>
         </div>
-
-        <div class="card" data-aos="fade-up" data-aos-delay="360">
-          <div class="card-icon"><i class="fas fa-wind"></i></div>
+        <div class="card">
+          <div class="card-icon" style="color:#e8843a">∼</div>
           <div class="card-quote">"Ada ketenangan yang kamu bawa."</div>
-          <div class="card-note">Mungkin kamu sendiri tidak merasakannya. Tapi orang-orang di sekitarmu merasakannya.</div>
+          <div class="card-note">Mungkin kamu sendiri tidak merasakannya. Tapi orang-orang di sekitarmu merasakannya.
+          </div>
         </div>
       </div>
-
-      <div style="text-align:center; margin-top:3rem" data-aos="fade-up">
-        <button class="btn-primary" onclick="scrollToSection('chapter3')">
-          Lihat Kenangan &nbsp;<i class="fas fa-images"></i>
-        </button>
+      <div style="text-align:center;margin-top:3rem">
+        <button class="btn-primary" onclick="goTo('ch3')">Lihat Kenangan &nbsp;✿</button>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       BAB 3: GALERI KENANGAN
-  ══════════════════════════════════════════ -->
-  <section id="chapter3" class="section">
-    <div class="section-inner">
-      <div class="section-divider">
-        <div class="divider-line"></div>
-        <span class="divider-ornament"><i class="fas fa-camera-retro"></i></span>
-        <div class="divider-line right"></div>
+  <!-- ══════════════════════════════════
+     BAB 3: GALERI KENANGAN — Musim Semi (Spring)
+     Suasana: kelopak sakura melayang, angin lembut, hijau muda, cahaya siang yang hangat
+════════════════════════════════════ -->
+  <section id="ch3" class="chapter" style="--accent:#1a4a20;--accent-bright:#7ec87a;--title-color:#eafae8">
+    <div class="sec-inner">
+      <div class="ch-divider">
+        <div class="div-line" style="background:linear-gradient(90deg,transparent,#1a4a20)"></div>
+        <div class="div-ornament">🌸</div>
+        <div class="div-line r" style="background:linear-gradient(90deg,#1a4a20,transparent)"></div>
       </div>
+      <div class="ch-label">Bab III</div>
+      <h2 class="ch-title" style="--accent-bright:#a0e89c">Galeri <em>Kenangan</em></h2>
+      <p
+        style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:#5a8a54;text-align:center;letter-spacing:.2em;text-transform:uppercase;margin-bottom:2rem;font-style:italic">
+        ✿ Musim Semi — saat segalanya mekar kembali ✿</p>
 
-      <div class="chapter-label">Bab III</div>
-      <h2 class="chapter-title">Galeri <em>Kenangan</em></h2>
-
-      <div class="gallery-slider" data-aos="fade-up">
-        <div class="gallery-track">
-          <!-- Slides diisi JavaScript -->
+      <div class="gallery-wrap">
+        <div class="gallery-track" id="gallery-track">
+          <div class="g-slide">
+            <img src="https://picsum.photos/seed/spring1/900/520" alt="kenangan">
+            <div class="g-caption">
+              <h3>Aku masih mengingat hari ini.</h3>
+              <p>Mungkin kamu sudah lupa. Tapi aku tidak.</p>
+            </div>
+          </div>
+          <div class="g-slide">
+            <img src="https://picsum.photos/seed/garden2/900/520" alt="kenangan">
+            <div class="g-caption">
+              <h3>Ini salah satu momen favoritku.</h3>
+              <p>Senyummu waktu itu tulus sekali.</p>
+            </div>
+          </div>
+          <div class="g-slide">
+            <img src="https://picsum.photos/seed/flower3/900/520" alt="kenangan">
+            <div class="g-caption">
+              <h3>Waktu berjalan begitu cepat.</h3>
+              <p>Tapi kenangan ini terasa seperti kemarin.</p>
+            </div>
+          </div>
+          <div class="g-slide">
+            <img src="https://picsum.photos/seed/bloom4/900/520" alt="kenangan">
+            <div class="g-caption">
+              <h3>Kamu tidak selalu bisa melihat betapa berharganya dirimu.</h3>
+              <p>Tapi aku bisa.</p>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div class="gallery-controls" data-aos="fade-up">
-        <button class="gallery-btn prev" aria-label="Foto sebelumnya">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <div class="gallery-dots"></div>
-        <button class="gallery-btn next" aria-label="Foto berikutnya">
-          <i class="fas fa-chevron-right"></i>
-        </button>
+      <div class="g-controls">
+        <button class="g-btn" id="gprev">‹</button>
+        <div class="g-dots" id="g-dots">
+          <button class="g-dot active"></button>
+          <button class="g-dot"></button>
+          <button class="g-dot"></button>
+          <button class="g-dot"></button>
+        </div>
+        <button class="g-btn" id="gnext">›</button>
       </div>
-
-      <div style="text-align:center; margin-top:2.5rem" data-aos="fade-up">
-        <button class="btn-primary" onclick="scrollToSection('chapter4')">
-          Lanjut &nbsp;<i class="fas fa-chevron-down"></i>
-        </button>
+      <div style="text-align:center;margin-top:2.8rem">
+        <button class="btn-primary" onclick="goTo('ch4')">Lanjut &nbsp;↓</button>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       BAB 4: HALAMAN YANG HILANG
-  ══════════════════════════════════════════ -->
-  <section id="chapter4" class="section">
-    <div class="section-inner">
-      <div class="section-divider">
-        <div class="divider-line"></div>
-        <span class="divider-ornament"><i class="fas fa-ellipsis-h"></i></span>
-        <div class="divider-line right"></div>
+  <!-- ══════════════════════════════════
+     BAB 4: HALAMAN YANG HILANG — Musim Panas
+     Suasana: siang terik, biru langit dalam, kunang-kunang, cahaya lembut
+════════════════════════════════════ -->
+  <section id="ch4" class="chapter" style="--accent:#2a1a5a;--accent-bright:#9080e8;--title-color:#ece8fa">
+    <div class="sec-inner">
+      <div class="ch-divider">
+        <div class="div-line" style="background:linear-gradient(90deg,transparent,#2a1a5a)"></div>
+        <div class="div-ornament">✨</div>
+        <div class="div-line r" style="background:linear-gradient(90deg,#2a1a5a,transparent)"></div>
       </div>
-
-      <div class="chapter-label">Bab IV</div>
-      <h2 class="chapter-title">Halaman yang <em>Hilang</em></h2>
-
-      <div class="missing-intro">
-        "Beberapa kenangan tidak pernah sempat difoto.<br>
-        Tapi tetap tinggal di ingatan."
+      <div class="ch-label">Bab IV</div>
+      <h2 class="ch-title" style="--accent-bright:#b0a4f0">Halaman yang <em>Hilang</em></h2>
+      <div class="missing-intro" id="missing-intro">
+        "Beberapa kenangan tidak pernah sempat difoto.<br>Tapi tetap tinggal di ingatan."
       </div>
-
       <div class="memory-list">
-        <div class="memory-item">
+        <div class="memory-item" style="--accent-bright:#9080e8">
           <div class="memory-text">Percakapan tengah malam yang tidak pernah dicatat di mana pun.</div>
           <div class="memory-sub">Tapi masih terasa nyata.</div>
         </div>
@@ -260,249 +1434,750 @@
           <div class="memory-sub">Tersimpan di sini.</div>
         </div>
       </div>
-
-      <div style="text-align:center; margin-top:3rem" data-aos="fade-up">
-        <button class="btn-primary" onclick="scrollToSection('chapter5')">
-          Ada Surat Untukmu &nbsp;<i class="fas fa-envelope"></i>
-        </button>
+      <div style="text-align:center;margin-top:3.5rem">
+        <button class="btn-primary" onclick="goTo('ch5')">Ada Surat Untukmu &nbsp;✉</button>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       BAB 5: SURAT
-  ══════════════════════════════════════════ -->
-  <section id="chapter5" class="section">
-    <div class="section-inner">
-      <div class="section-divider">
-        <div class="divider-line"></div>
-        <span class="divider-ornament"><i class="fas fa-envelope-open-text"></i></span>
-        <div class="divider-line right"></div>
+  <!-- ══════════════════════════════════
+     BAB 5: SURAT — Musim Gugur Dalam
+     Suasana: api unggun, warna tembaga, angin malam, keintiman
+════════════════════════════════════ -->
+  <section id="ch5" class="chapter" style="--accent:#4a1a0a;--accent-bright:#d4703a">
+    <div class="sec-inner">
+      <div class="ch-divider">
+        <div class="div-line" style="background:linear-gradient(90deg,transparent,#4a1a0a)"></div>
+        <div class="div-ornament">📜</div>
+        <div class="div-line r" style="background:linear-gradient(90deg,#4a1a0a,transparent)"></div>
       </div>
-
-      <div class="chapter-label">Bab V</div>
-      <h2 class="chapter-title" style="text-align:center">Surat yang Tidak<br>Pernah <em>Dikirim</em></h2>
-
-      <div class="envelope-wrapper" data-aos="zoom-in">
+      <div class="ch-label">Bab V</div>
+      <h2 class="ch-title" style="text-align:center;--accent-bright:#d4a070">Surat yang Tidak<br>Pernah <em>Dikirim</em>
+      </h2>
+      <div class="env-wrap">
         <div>
-          <div class="envelope" role="button" aria-label="Klik untuk membuka surat" tabindex="0">
-            <div class="envelope-body">
-              <div class="envelope-flap"></div>
-              <div class="envelope-seal"><i class="fas fa-feather-alt" style="font-size:0.7rem"></i></div>
-              <div class="envelope-lines">
-                <div class="envelope-line"></div>
-                <div class="envelope-line"></div>
-                <div class="envelope-line"></div>
-              </div>
+          <div class="envelope" id="envelope" onclick="openEnvelope()">
+            <div class="env-body">
+              <div class="env-flap"></div>
+              <div class="env-seal">✦</div>
             </div>
           </div>
-          <div class="envelope-label">Klik untuk membuka</div>
+          <div class="env-label" id="env-label">Klik untuk membuka</div>
         </div>
       </div>
-
-      <div class="letter-content">
-        <div class="letter-greeting">Untuk {{ config.recipient_name }},</div>
+      <div class="letter-content" id="letter-content">
+        <div class="letter-greeting">Untuk Kamu,</div>
         <div class="letter-body">
-          <!-- Diisi JavaScript -->
+          <p>Jika kamu sedang membaca ini, berarti kamu sudah mau meluangkan waktu. Dan itu sudah berarti banyak
+            untukku.</p>
+          <p>Aku tidak pandai merangkai kata di saat yang tepat. Selalu ada sesuatu yang mengganjal di tenggorokan
+            setiap kali aku ingin bicara. Jadi kali ini aku memilih untuk menulis.</p>
+          <p>Ada begitu banyak hal yang ingin kusampaikan. Tentang betapa aku melihatmu tumbuh. Tentang betapa aku
+            menyaksikan kamu berjuang dengan hal-hal yang bahkan kamu sendiri tidak ceritakan pada siapapun.</p>
+          <p>Kamu mungkin tidak tahu — dan mungkin itulah yang membuatmu begitu istimewa — bahwa kehadiranmu membuat
+            dunia terasa sedikit lebih baik.</p>
+          <p>Bukan karena kamu sempurna. Tapi justru karena kamu tidak pernah berpura-pura.</p>
+          <p>Di hari ulang tahunmu ini, aku ingin kamu tahu bahwa seseorang melihatmu — benar-benar melihatmu — dan
+            bersyukur karena kamu ada.</p>
+          <p><em>Selamat ulang tahun. Semoga tahun ini menjadi milikmu sepenuhnya.</em></p>
         </div>
-        <div class="letter-sign">— {{ config.sender_name }}</div>
+        <div class="letter-sign">— Seseorang yang peduli</div>
       </div>
-
-      <div style="text-align:center; margin-top:3rem" data-aos="fade-up">
-        <button class="btn-primary" onclick="scrollToSection('chapter6')">
-          Satu Tahun Terakhir &nbsp;<i class="fas fa-calendar"></i>
-        </button>
+      <div style="text-align:center;margin-top:3.5rem">
+        <button class="btn-primary" onclick="goTo('ch6')">Satu Tahun Terakhir &nbsp;⌛</button>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       BAB 6: TIMELINE
-  ══════════════════════════════════════════ -->
-  <section id="chapter6" class="section">
-    <div class="section-inner">
-      <div class="section-divider">
-        <div class="divider-line"></div>
-        <span class="divider-ornament"><i class="fas fa-hourglass-half"></i></span>
-        <div class="divider-line right"></div>
+  <!-- ══════════════════════════════════
+     BAB 6: TIMELINE — Musim Dingin
+     Suasana: salju pelan, sunyi, biru pucat, butiran es
+════════════════════════════════════ -->
+  <section id="ch6" class="chapter" style="--accent:#0a2a3a;--accent-bright:#7ac8e8;--title-color:#e4f2fa;--bg:#080d14">
+    <div class="sec-inner">
+      <div class="ch-divider">
+        <div class="div-line" style="background:linear-gradient(90deg,transparent,#0a2a3a)"></div>
+        <div class="div-ornament">❄</div>
+        <div class="div-line r" style="background:linear-gradient(90deg,#0a2a3a,transparent)"></div>
       </div>
-
-      <div class="chapter-label">Bab VI</div>
-      <h2 class="chapter-title">Satu Tahun <em>Terakhir</em></h2>
-
-      <div class="timeline">
-        <!-- Diisi JavaScript -->
+      <div class="ch-label">Bab VI</div>
+      <h2 class="ch-title" style="--accent-bright:#a0daf0">Satu Tahun <em>Terakhir</em></h2>
+      <div class="timeline" id="timeline">
+        <div class="tl-item" style="--accent-bright:#7ac8e8;--bg:#080d14">
+          <div class="tl-dot"></div>
+          <div class="tl-month">Januari</div>
+          <div class="tl-title">Awal yang berat</div>
+          <div class="tl-text">Kamu berhasil melewati sesuatu yang sulit. Lebih sulit dari yang siapapun tahu.</div>
+        </div>
+        <div class="tl-item" style="--accent-bright:#7ac8e8;--bg:#080d14">
+          <div class="tl-dot"></div>
+          <div class="tl-month">Maret</div>
+          <div class="tl-title">Tumbuh lebih kuat</div>
+          <div class="tl-text">Kamu tidak menyerah. Bahkan ketika rasanya lebih mudah untuk berhenti.</div>
+        </div>
+        <div class="tl-item" style="--accent-bright:#7ac8e8;--bg:#080d14">
+          <div class="tl-dot"></div>
+          <div class="tl-month">Mei</div>
+          <div class="tl-title">Menemukan ritme</div>
+          <div class="tl-text">Perlahan-lahan, segalanya mulai terasa lebih bisa digenggam.</div>
+        </div>
+        <div class="tl-item" style="--accent-bright:#7ac8e8;--bg:#080d14">
+          <div class="tl-dot"></div>
+          <div class="tl-month">Juli</div>
+          <div class="tl-title">Belajar melepaskan</div>
+          <div class="tl-text">Kamu memilih untuk melepaskan apa yang sudah tidak lagi milikmu. Dan itu butuh
+            keberanian.</div>
+        </div>
+        <div class="tl-item" style="--accent-bright:#7ac8e8;--bg:#080d14">
+          <div class="tl-dot"></div>
+          <div class="tl-month">September</div>
+          <div class="tl-title">Kembali tersenyum</div>
+          <div class="tl-text">Ada hari-hari ketika senyummu kembali. Dan dunia terasa jauh lebih terang.</div>
+        </div>
+        <div class="tl-item" style="--accent-bright:#7ac8e8;--bg:#080d14">
+          <div class="tl-dot"></div>
+          <div class="tl-month">Desember</div>
+          <div class="tl-title">Tetap bertahan</div>
+          <div class="tl-text">Kamu sampai di sini. Utuh. Dan itu lebih dari cukup.</div>
+        </div>
       </div>
-
-      <div style="text-align:center; margin-top:3rem" data-aos="fade-up">
-        <button class="btn-primary" onclick="scrollToSection('chapter7')">
-          Dan Ke Depannya &nbsp;<i class="fas fa-star"></i>
-        </button>
+      <div style="text-align:center;margin-top:3.5rem">
+        <button class="btn-primary" onclick="goTo('ch7')">Dan Ke Depannya &nbsp;✦</button>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       BAB 7: SURAT MASA DEPAN
-  ══════════════════════════════════════════ -->
-  <section id="chapter7" class="section">
-    <div class="section-inner">
-      <div class="section-divider">
-        <div class="divider-line"></div>
-        <span class="divider-ornament"><i class="fas fa-meteor"></i></span>
-        <div class="divider-line right"></div>
+  <!-- ══════════════════════════════════
+     BAB 7: SURAT MASA DEPAN — Fajar Baru
+     Suasana: cahaya fajar emas, hangat, penuh harapan
+════════════════════════════════════ -->
+  <section id="ch7" class="chapter" style="--accent:#3a2608;--accent-bright:#e8c870;--title-color:#fdf4e0">
+    <div class="sec-inner">
+      <div class="ch-divider">
+        <div class="div-line" style="background:linear-gradient(90deg,transparent,#3a2608)"></div>
+        <div class="div-ornament">☀</div>
+        <div class="div-line r" style="background:linear-gradient(90deg,#3a2608,transparent)"></div>
       </div>
-
-      <div class="chapter-label">Bab VII</div>
-      <h2 class="chapter-title" style="text-align:center">Surat untuk <em>Masa Depan</em></h2>
-
-      <div class="wishes-container">
-        <div class="wish-item">
-          <div class="wish-prefix">Semoga di usia baru ini&hellip;</div>
-          <div class="wish-text">"Kamu menemukan lebih banyak alasan untuk tersenyum."</div>
+      <div class="ch-label">Bab VII</div>
+      <h2 class="ch-title" style="text-align:center;--accent-bright:#f0d870">Surat untuk <em>Masa Depan</em></h2>
+      <div class="wishes">
+        <div class="wish">
+          <div class="wish-prefix">Semoga di usia baru ini…</div>
+          <div class="wish-text" style="color:#fdf4e0">"Kamu menemukan lebih banyak alasan untuk tersenyum."</div>
         </div>
-        <div class="wish-item">
-          <div class="wish-prefix">Semoga&hellip;</div>
-          <div class="wish-text">"Kamu berani mengejar mimpi yang selama ini hanya berani kamu bayangkan."</div>
+        <div class="wish">
+          <div class="wish-prefix">Semoga…</div>
+          <div class="wish-text" style="color:#fdf4e0">"Kamu berani mengejar mimpi yang selama ini hanya berani kamu
+            bayangkan."</div>
         </div>
-        <div class="wish-item">
-          <div class="wish-prefix">Semoga&hellip;</div>
-          <div class="wish-text">"Ada lebih banyak hari yang membuatmu bangga terhadap dirimu sendiri."</div>
+        <div class="wish">
+          <div class="wish-prefix">Semoga…</div>
+          <div class="wish-text" style="color:#fdf4e0">"Ada lebih banyak hari yang membuatmu bangga terhadap dirimu
+            sendiri."</div>
         </div>
-        <div class="wish-item">
-          <div class="wish-prefix">Dan yang terpenting&hellip;</div>
-          <div class="wish-text">"Semoga kamu selalu tahu bahwa ada yang peduli."</div>
+        <div class="wish">
+          <div class="wish-prefix">Dan yang terpenting…</div>
+          <div class="wish-text" style="color:#fdf4e0">"Semoga kamu selalu tahu bahwa ada yang peduli."</div>
         </div>
       </div>
-
-      <div style="text-align:center; margin-top:3rem" data-aos="fade-up">
-        <button class="btn-primary" onclick="scrollToSection('chapter8')">
-          Hampir Selesai &nbsp;<i class="fas fa-chevron-down"></i>
-        </button>
+      <div style="text-align:center;margin-top:3.5rem">
+        <button class="btn-primary" onclick="goTo('ch8')">Hampir Selesai &nbsp;↓</button>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       BAB 8: PENUTUP
-  ══════════════════════════════════════════ -->
-  <section id="chapter8" class="section">
-    <div class="section-inner" style="text-align:center">
-      <div class="section-divider">
-        <div class="divider-line"></div>
-        <span class="divider-ornament"><i class="fas fa-bookmark"></i></span>
-        <div class="divider-line right"></div>
+  <!-- ══════════════════════════════════
+     BAB 8: PENUTUP
+════════════════════════════════════ -->
+  <section id="ch8" class="chapter" style="text-align:center">
+    <div class="sec-inner" style="text-align:center">
+      <div class="ch-divider">
+        <div class="div-line"></div>
+        <div class="div-ornament">✦</div>
+        <div class="div-line r"></div>
       </div>
-
-      <div class="chapter-label">Bab VIII</div>
-      <h2 class="chapter-title">Penutup</h2>
-
-      <div class="closing-text" data-aos="fade-up">
+      <div class="ch-label">Bab VIII</div>
+      <h2 class="ch-title">Penutup</h2>
+      <div class="closing-text" id="closing-text">
         "Sebelum buku ini ditutup...<br>Ada satu hal terakhir."
       </div>
-
-      <div data-aos="fade-up" data-aos-delay="300">
-        <button class="btn-primary" onclick="triggerFinal()" style="font-size:1.1rem; padding:1rem 2.5rem">
-          <i class="fas fa-eye"></i> &nbsp;Lihat
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════
-       FINAL PAGE
-  ══════════════════════════════════════════ -->
-  <section id="final-page">
-    <div class="final-lines">
-      <div class="final-line">"Terima kasih sudah lahir."</div>
-      <div class="final-line">"Terima kasih sudah bertahan sejauh ini."</div>
-      <div class="final-line">"Terima kasih karena tetap menjadi dirimu."</div>
-    </div>
-
-    <div class="final-name">Selamat Ulang Tahun,<br>{{ config.recipient_name }}</div>
-
-    <div class="balloons" aria-hidden="true"></div>
-
-    <div style="margin-top:4rem; opacity:0; animation: fadeUp 1s 5s ease forwards">
-      <button class="btn-primary" onclick="triggerEnding()" style="font-size:1rem; padding:0.9rem 2rem">
-        <i class="fas fa-book"></i> &nbsp;Tutup Buku
+      <button class="btn-primary" onclick="triggerFinal()" style="font-size:1.1rem;padding:1.1rem 3rem">
+        ✦ &nbsp;Lihat
       </button>
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       ENDING
-  ══════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════
+     FINAL PAGE — Taman Bunga + Gugusan Bintang
+════════════════════════════════════ -->
+  <section id="final-page">
+    <!-- Star field canvas (big) -->
+    <canvas id="star-canvas-final" style="position:fixed;inset:0;z-index:1;pointer-events:none"></canvas>
+    <!-- Flower field canvas -->
+    <canvas id="flower-canvas"
+      style="position:fixed;bottom:0;left:0;right:0;z-index:2;pointer-events:none;height:40vh"></canvas>
+
+    <div style="position:relative;z-index:10">
+      <div class="final-lines">
+        <div class="final-line">"Terima kasih sudah lahir."</div>
+        <div class="final-line">"Terima kasih sudah bertahan sejauh ini."</div>
+        <div class="final-line">"Terima kasih karena tetap menjadi dirimu."</div>
+      </div>
+      <div class="final-name" id="final-name">Selamat Ulang Tahun</div>
+      <div style="margin-top:4rem;opacity:0;animation:fadeUp 1s 5.5s ease both">
+        <button class="btn-primary" onclick="triggerEnding()" style="font-size:1rem;padding:.9rem 2.2rem">
+          ✦ &nbsp;Tutup Buku
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENDING -->
   <section id="ending">
     <div class="ending-book">
       <div class="ending-text">
-        <div style="font-size:1.5rem; color: var(--gold); margin-bottom:0.5rem">
-          <i class="fas fa-feather-alt"></i>
-        </div>
+        <div style="font-size:1.5rem;color:#c9a84c;margin-bottom:.5rem">✦</div>
         Memory Book
       </div>
     </div>
     <div class="ending-tamat">Tamat.</div>
-    <div class="ending-subtitle">
-      Sampai jumpa di ulang tahun berikutnya.
-    </div>
+    <div class="ending-sub">Sampai jumpa di ulang tahun berikutnya.</div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       SCRIPTS
-  ══════════════════════════════════════════ -->
-
-  <!-- AOS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.min.js"></script>
-
-  <!-- Typed.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.16/typed.umd.js"></script>
-
-  <!-- canvas-confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-
-  <!-- GSAP -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-
-  <!-- Main JS -->
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
-  <!-- GSAP Parallax init (after scripts loaded) -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-        gsap.registerPlugin(ScrollTrigger);
+    "use strict";
 
-        // Subtle parallax on chapter titles
-        gsap.utils.toArray('.chapter-title').forEach(el => {
-          gsap.fromTo(el,
-            { y: 30, opacity: 0 },
-            {
-              y: 0, opacity: 1, duration: 1,
-              ease: 'power3.out',
-              scrollTrigger: {
-                trigger: el,
-                start: 'top 85%',
-                toggleActions: 'play none none none'
-              }
+    // ── STATE ──
+    const S = {
+      sec: 0, gIdx: 0, letterOpen: false, musicOn: false,
+      audioCtx: null, gainNode: null,
+      chapters: ['ch-cover', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'ch8']
+    };
+
+    // ── BG CANVAS ATMOSPHERE ──
+    const bgC = document.getElementById('bg-canvas');
+    const bgX = bgC.getContext('2d');
+    let bgW, bgH, particles = [], currentTheme = 'night';
+
+    const THEMES = {
+      night: {
+        particles: () => Array.from({ length: 220 }, () => ({
+          x: Math.random() * bgW, y: Math.random() * bgH,
+          r: Math.random() * 1.3 + .2, a: Math.random(), speed: Math.random() * .006 + .001,
+          phase: Math.random() * Math.PI * 2,
+          color: [255, 255, 255], type: 'star'
+        }))
+      },
+      autumn: {
+        particles: () => Array.from({ length: 55 }, () => ({
+          x: Math.random() * bgW, y: -20,
+          vx: (Math.random() - .5) * 1.2, vy: Math.random() * .6 + .3,
+          r: Math.random() * 7 + 5, a: Math.random() * .8 + .2,
+          rot: Math.random() * Math.PI * 2, rotV: (Math.random() - .5) * .04,
+          hue: Math.floor(Math.random() * 3),
+          type: 'leaf'
+        }))
+      },
+      spring: {
+        particles: () => Array.from({ length: 80 }, () => ({
+          x: Math.random() * bgW, y: -10,
+          vx: (Math.random() - .5) * 1.5, vy: Math.random() * .55 + .2,
+          r: Math.random() * 6 + 3, a: Math.random() * .9 + .1,
+          rot: Math.random() * Math.PI * 2, rotV: (Math.random() - .5) * .05,
+          type: 'petal'
+        }))
+      },
+      summer: {
+        particles: () => Array.from({ length: 40 }, () => ({
+          x: Math.random() * bgW, y: Math.random() * bgH,
+          vx: (Math.random() - .5) * .3, vy: -(Math.random() * .5 + .2),
+          r: Math.random() * 2 + 1, a: 0,
+          aTarget: Math.random() * .7 + .3,
+          type: 'firefly', phase: Math.random() * Math.PI * 2, speed: Math.random() * .02 + .005
+        }))
+      },
+      deepautumn: {
+        particles: () => Array.from({ length: 30 }, () => ({
+          x: Math.random() * bgW, y: Math.random() * bgH,
+          vx: (Math.random() - .5) * .2, vy: (Math.random() - .5) * .2,
+          r: Math.random() * 1.5 + .5, a: Math.random() * .6 + .2,
+          phase: Math.random() * Math.PI * 2, speed: Math.random() * .01 + .003,
+          type: 'ember'
+        }))
+      },
+      winter: {
+        particles: () => Array.from({ length: 100 }, () => ({
+          x: Math.random() * bgW, y: -10,
+          vx: (Math.random() - .5) * .6, vy: Math.random() * .4 + .15,
+          r: Math.random() * 3 + 1, a: Math.random() * .8 + .2,
+          rot: Math.random() * Math.PI * 2,
+          type: 'snow'
+        }))
+      },
+      dawn: {
+        particles: () => Array.from({ length: 35 }, () => ({
+          x: Math.random() * bgW, y: Math.random() * bgH,
+          vx: (Math.random() - .5) * .15, vy: -Math.random() * .3 - .1,
+          r: Math.random() * 2 + .5, a: Math.random() * .5 + .3,
+          phase: Math.random() * Math.PI * 2, speed: Math.random() * .015 + .005,
+          type: 'spark'
+        }))
+      }
+    };
+
+    function resizeBg() {
+      bgW = bgC.width = window.innerWidth;
+      bgH = bgC.height = window.innerHeight;
+    }
+
+    const leafColors = [
+      [[220, 80, 30], [200, 100, 40], [180, 130, 20]],
+    ];
+
+    function drawBg(t) {
+      bgX.clearRect(0, 0, bgW, bgH);
+      const dead = [];
+
+      particles.forEach((p, i) => {
+        bgX.save();
+        if (p.type === 'star') {
+          p.a = .2 + .8 * Math.abs(Math.sin(t * p.speed + p.phase));
+          bgX.beginPath();
+          bgX.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          bgX.fillStyle = `rgba(255,255,255,${p.a})`;
+          bgX.fill();
+        } else if (p.type === 'leaf') {
+          p.x += p.vx + (Math.sin(t * .01 + p.phase || 0) * .4);
+          p.y += p.vy;
+          p.rot += p.rotV;
+          if (!p.phase) p.phase = Math.random() * Math.PI * 2;
+          if (p.y > bgH + 30) dead.push(i);
+          const [r, g, b] = leafColors[0][p.hue];
+          bgX.translate(p.x, p.y); bgX.rotate(p.rot); bgX.scale(1, .6);
+          bgX.beginPath(); bgX.ellipse(0, 0, p.r, p.r * .5, 0, 0, Math.PI * 2);
+          bgX.fillStyle = `rgba(${r},${g},${b},${p.a})`;
+          bgX.fill();
+        } else if (p.type === 'petal') {
+          p.x += p.vx + (Math.sin(t * .015 + (p.phase || 0)) * 1.2);
+          p.y += p.vy;
+          p.rot += p.rotV;
+          if (!p.phase) p.phase = Math.random() * Math.PI * 2;
+          if (p.y > bgH + 20) dead.push(i);
+          bgX.translate(p.x, p.y); bgX.rotate(p.rot);
+          bgX.beginPath(); bgX.ellipse(0, 0, p.r, p.r * .55, 0, 0, Math.PI * 2);
+          bgX.fillStyle = `rgba(255,180,200,${p.a})`;
+          bgX.fill();
+        } else if (p.type === 'firefly') {
+          p.a = Math.abs(Math.sin(t * p.speed + p.phase)) * (p.aTarget || .6);
+          p.x += p.vx + (Math.sin(t * .008 + p.phase) * 1.5);
+          p.y += p.vy;
+          if (p.y < -20) { p.y = bgH; p.x = Math.random() * bgW; }
+          bgX.beginPath(); bgX.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          bgX.fillStyle = `rgba(200,240,120,${p.a})`;
+          bgX.shadowColor = 'rgba(200,240,120,.8)'; bgX.shadowBlur = 12;
+          bgX.fill(); bgX.shadowBlur = 0;
+        } else if (p.type === 'ember') {
+          p.x += p.vx + (Math.sin(t * p.speed + p.phase) * .5);
+          p.y += p.vy;
+          p.a = .2 + .6 * Math.abs(Math.sin(t * p.speed + p.phase));
+          if (p.y < -10) p.y = bgH + 10;
+          if (p.y > bgH + 10) p.y = -10;
+          bgX.beginPath(); bgX.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          bgX.fillStyle = `rgba(240,140,60,${p.a})`;
+          bgX.fill();
+        } else if (p.type === 'snow') {
+          p.x += p.vx + (Math.sin(t * .01 + (p.phase || 0)) * .4);
+          p.y += p.vy;
+          if (!p.phase) p.phase = Math.random() * Math.PI * 2;
+          if (p.y > bgH + 15) dead.push(i);
+          bgX.beginPath(); bgX.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          bgX.fillStyle = `rgba(180,220,255,${p.a})`;
+          bgX.fill();
+        } else if (p.type === 'spark') {
+          p.x += p.vx + (Math.cos(t * p.speed + p.phase) * 1.5);
+          p.y += p.vy;
+          p.a = Math.abs(Math.sin(t * p.speed + p.phase)) * .8;
+          if (p.y < -20) { p.y = bgH; p.x = Math.random() * bgW; }
+          bgX.beginPath(); bgX.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          bgX.fillStyle = `rgba(255,210,100,${p.a})`;
+          bgX.shadowColor = 'rgba(255,200,80,.6)'; bgX.shadowBlur = 10;
+          bgX.fill(); bgX.shadowBlur = 0;
+        }
+        bgX.restore();
+      });
+
+      for (let i = dead.length - 1; i >= 0; i--) particles.splice(dead[i], 1);
+
+      // Replenish falling particles
+      if (['leaf', 'petal', 'snow'].includes(currentTheme === 'autumn' ? 'leaf' : currentTheme === 'spring' ? 'petal' : currentTheme === 'winter' ? 'snow' : 'none')) {
+        const need = { autumn: 55, spring: 80, winter: 100 }[currentTheme] || 0;
+        if (particles.length < need * .5) {
+          const newP = THEMES[currentTheme].particles().slice(0, 5).map(p => ({ ...p, x: Math.random() * bgW, y: -10 }));
+          particles.push(...newP);
+        }
+      }
+
+      requestAnimationFrame(drawBg);
+    }
+
+    function setTheme(name) {
+      if (currentTheme === name) return;
+      currentTheme = name;
+      particles = THEMES[name]?.particles() || [];
+    }
+
+    // ── SECTION → THEME MAP ──
+    const sectionThemes = {
+      'ch-cover': 'night', 'ch1': 'night', 'ch2': 'autumn',
+      'ch3': 'spring', 'ch4': 'summer', 'ch5': 'deepautumn',
+      'ch6': 'winter', 'ch7': 'dawn', 'ch8': 'night'
+    };
+
+    // ── GALLERY ──
+    let gIdx = 0;
+    const gTrack = document.getElementById('gallery-track');
+    const gDots = [...document.querySelectorAll('.g-dot')];
+    const GCOUNT = 4;
+
+    function goSlide(i) {
+      gIdx = (i + GCOUNT) % GCOUNT;
+      gTrack.style.transform = `translateX(-${gIdx * 100}%)`;
+      gDots.forEach((d, j) => d.classList.toggle('active', j === gIdx));
+    }
+    document.getElementById('gprev').onclick = () => goSlide(gIdx - 1);
+    document.getElementById('gnext').onclick = () => goSlide(gIdx + 1);
+    gDots.forEach((d, i) => d.onclick = () => goSlide(i));
+    setInterval(() => goSlide(gIdx + 1), 5200);
+
+    // ── ENVELOPE ──
+    let letterOpen = false;
+    function openEnvelope() {
+      if (letterOpen) return;
+      letterOpen = true;
+      document.getElementById('envelope').classList.add('opened');
+      document.getElementById('env-label').style.opacity = '0';
+      setTimeout(() => {
+        const lc = document.getElementById('letter-content');
+        lc.style.display = 'block';
+        requestAnimationFrame(() => requestAnimationFrame(() => lc.classList.add('vis')));
+      }, 950);
+    }
+
+    // ── BOOK OPEN ──
+    window.openBook = function () {
+      document.getElementById('book-inner').classList.add('opening');
+      setTimeout(() => goTo('ch1'), 1400);
+    };
+
+    // ── NAVIGATE ──
+    window.goTo = function (id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // ── NAV DOTS ──
+    const navEl = document.getElementById('nav-dots');
+    S.chapters.forEach((id, i) => {
+      const d = document.createElement('div');
+      d.className = 'ndot' + (i === 0 ? ' active' : '');
+      d.onclick = () => goTo(id);
+      navEl.appendChild(d);
+    });
+
+    function updateNav(id) {
+      document.querySelectorAll('.ndot').forEach((d, i) => {
+        d.classList.toggle('active', S.chapters[i] === id);
+      });
+    }
+
+    // ── INTERSECTION OBSERVER ──
+    const obsMap = {
+      'ch2': 'autumn', 'ch3': 'spring', 'ch4': 'summer',
+      'ch5': 'deepautumn', 'ch6': 'winter', 'ch7': 'dawn'
+    };
+
+    const mainObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = e.target.id;
+          if (obsMap[id]) setTheme(obsMap[id]);
+          else setTheme('night');
+          updateNav(id);
+        }
+      });
+    }, { threshold: .35 });
+
+    S.chapters.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) mainObs.observe(el);
+    });
+
+    const animObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('vis');
+      });
+    }, { threshold: .15, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.memory-item,.tl-item,.wish').forEach(el => animObs.observe(el));
+    document.querySelectorAll('#missing-intro,#closing-text').forEach(el => animObs.observe(el));
+
+    // ── FINAL PAGE — Star Field ──
+    function initFinalStars() {
+      const c = document.getElementById('star-canvas-final');
+      const x = c.getContext('2d');
+      let w, h, stars = [];
+
+      function resize() {
+        w = c.width = window.innerWidth;
+        h = c.height = window.innerHeight;
+        stars = Array.from({ length: 340 }, () => ({
+          x: Math.random() * w, y: Math.random() * h,
+          r: Math.random() * 1.6 + .15,
+          a: Math.random(), speed: Math.random() * .008 + .001,
+          phase: Math.random() * Math.PI * 2,
+          big: Math.random() < .04
+        }));
+      }
+
+      function draw(t) {
+        x.clearRect(0, 0, w, h);
+        stars.forEach(s => {
+          s.a = .15 + .85 * Math.abs(Math.sin(t * s.speed + s.phase));
+          if (s.big) {
+            // Draw star shape
+            x.save();
+            x.translate(s.x, s.y);
+            x.beginPath();
+            for (let i = 0; i < 5; i++) {
+              const a = i * Math.PI * 2 / 5 - Math.PI / 2;
+              const a2 = a + Math.PI / 5;
+              i === 0 ? x.moveTo(Math.cos(a) * s.r * 2.5, Math.sin(a) * s.r * 2.5) : x.lineTo(Math.cos(a) * s.r * 2.5, Math.sin(a) * s.r * 2.5);
+              x.lineTo(Math.cos(a2) * s.r, Math.sin(a2) * s.r);
             }
-          );
-        });
-
-        // Parallax on stars canvas for depth
-        gsap.to('#stars-canvas', {
-          y: () => -window.scrollY * 0.15,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: 'body',
-            start: 'top top',
-            end: 'bottom bottom',
-            scrub: true
+            x.closePath();
+            x.fillStyle = `rgba(255,240,180,${s.a * .8})`;
+            x.fill();
+            x.restore();
+          } else {
+            x.beginPath(); x.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            const bright = Math.random() < .1;
+            x.fillStyle = bright ? `rgba(255,240,200,${s.a})` : `rgba(200,220,255,${s.a})`;
+            x.fill();
           }
         });
+        // Draw Milky Way band
+        const grad = x.createLinearGradient(w * .1, h * .2, w * .9, h * .8);
+        grad.addColorStop(0, 'rgba(100,80,200,0)');
+        grad.addColorStop(.3, 'rgba(80,60,180,.04)');
+        grad.addColorStop(.5, 'rgba(120,100,220,.07)');
+        grad.addColorStop(.7, 'rgba(80,60,180,.04)');
+        grad.addColorStop(1, 'rgba(100,80,200,0)');
+        x.fillStyle = grad;
+        x.fillRect(0, 0, w, h);
+
+        requestAnimationFrame(draw);
       }
+
+      window.addEventListener('resize', resize);
+      resize();
+      requestAnimationFrame(draw);
+    }
+
+    // ── FLOWER FIELD CANVAS ──
+    function initFlowerField() {
+      const c = document.getElementById('flower-canvas');
+      const x = c.getContext('2d');
+      let w, h;
+
+      function resize() {
+        w = c.width = window.innerWidth;
+        h = c.height = c.offsetHeight || window.innerHeight * .4;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      const flowers = [];
+      const FCOUNT = 60;
+      const colors = [
+        ['#ff9ec8', '#ffb8d8'], ['#ff7eb9', '#ff99cc'],
+        ['#c9a0ff', '#e0c0ff'], ['#ffd700', '#ffe066'],
+        ['#ff6ba8', '#ff8dc0'], ['#98e886', '#b5f0a0'],
+        ['#87ceeb', '#b0e0ff'], ['#ffb347', '#ffcc80'],
+      ];
+
+      for (let i = 0; i < FCOUNT; i++) {
+        flowers.push({
+          x: Math.random() * 100,
+          stemH: Math.random() * .4 + .3,
+          r: Math.random() * 12 + 6,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          petals: Math.floor(Math.random() * 3) + 4,
+          sway: Math.random() * Math.PI * 2,
+          swaySpeed: Math.random() * .01 + .005,
+          swayAmp: Math.random() * 4 + 2,
+          leafSide: Math.random() < .5 ? 1 : -1,
+        });
+      }
+
+      function drawFlower(p, t, fl) {
+        const cx = fl.x / 100 * w;
+        const vy = h * (1 - fl.stemH * .95);
+        const sw = Math.sin(t * fl.swaySpeed + fl.sway) * fl.swayAmp;
+        const tipX = cx + sw;
+
+        // Stem
+        x.beginPath();
+        x.moveTo(cx, h);
+        x.quadraticCurveTo(cx + sw * .5, h * .5, tipX, vy);
+        x.strokeStyle = 'rgba(60,140,40,.7)';
+        x.lineWidth = 2.5; x.stroke();
+
+        // Leaf
+        const leafY = h * .6 + vy * .4;
+        const lx = cx + sw * .3;
+        x.beginPath();
+        x.ellipse(lx + 12 * fl.leafSide, leafY, 10, 5, Math.PI / 5 * fl.leafSide, 0, Math.PI * 2);
+        x.fillStyle = 'rgba(60,160,40,.5)'; x.fill();
+
+        // Petals
+        const n = fl.petals;
+        const r = fl.r;
+        for (let i = 0; i < n; i++) {
+          const a = i * (Math.PI * 2 / n) + (t * fl.swaySpeed * .5);
+          const px = tipX + Math.cos(a) * r * .95;
+          const py = vy + Math.sin(a) * r * .95;
+          x.beginPath(); x.ellipse(px, py, r * .7, r * .4, a, 0, Math.PI * 2);
+          const g = x.createRadialGradient(tipX, vy, 1, px, py, r);
+          g.addColorStop(0, fl.color[0]); g.addColorStop(1, fl.color[1] + '80');
+          x.fillStyle = g; x.fill();
+        }
+
+        // Center
+        x.beginPath(); x.arc(tipX, vy, r * .32, 0, Math.PI * 2);
+        x.fillStyle = 'rgba(255,220,60,.9)'; x.fill();
+        x.beginPath(); x.arc(tipX, vy, r * .18, 0, Math.PI * 2);
+        x.fillStyle = 'rgba(200,140,20,.85)'; x.fill();
+      }
+
+      let _t = 0;
+      function draw() {
+        x.clearRect(0, 0, w, h);
+        // Grass base
+        const gg = x.createLinearGradient(0, h * .6, 0, h);
+        gg.addColorStop(0, 'rgba(20,60,20,0)');
+        gg.addColorStop(.4, 'rgba(20,60,20,.3)');
+        gg.addColorStop(1, 'rgba(10,30,10,.6)');
+        x.fillStyle = gg; x.fillRect(0, h * .6, w, h * .4);
+
+        flowers.sort((a, b) => a.stemH - b.stemH).forEach(fl => drawFlower(null, _t, fl));
+        _t += .016;
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    }
+
+    // ── FINAL TRIGGER ──
+    window.triggerFinal = function () {
+      document.getElementById('ch8').style.display = 'none';
+      const fp = document.getElementById('final-page');
+      fp.style.display = 'flex';
+
+      initFinalStars();
+      initFlowerField();
+
+      const lines = [...fp.querySelectorAll('.final-line')];
+      const name = fp.querySelector('#final-name');
+      lines.forEach((l, i) => setTimeout(() => l.classList.add('vis'), i * 1300 + 400));
+      setTimeout(() => {
+        name.classList.add('vis');
+        launchConfetti();
+      }, lines.length * 1300 + 900);
+    };
+
+    // ── CONFETTI ──
+    function launchConfetti() {
+      if (typeof confetti === 'undefined') return;
+      const colors = ['#c9a84c', '#e8d28a', '#ffb3d0', '#a0e0ff', '#c0f0a0', '#ffffff'];
+      confetti({ particleCount: 140, spread: 90, origin: { y: .6 }, colors });
+      setTimeout(() => confetti({ particleCount: 70, angle: 60, spread: 58, origin: { x: 0 }, colors }), 700);
+      setTimeout(() => confetti({ particleCount: 70, angle: 120, spread: 58, origin: { x: 1 }, colors }), 1100);
+    }
+
+    // ── ENDING ──
+    window.triggerEnding = function () {
+      document.getElementById('final-page').style.display = 'none';
+      document.getElementById('ending').classList.add('active');
+    };
+
+    // ── MUSIC ──
+    let audioCtx, gainNode, musicOn = false;
+    function toggleMusic() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioCtx.createGain(); gainNode.gain.value = 0;
+        gainNode.connect(audioCtx.destination);
+        playAmbient(); musicOn = true; updateMusicUI(true); return;
+      }
+      if (musicOn) {
+        gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, .6);
+        setTimeout(() => { musicOn = false; updateMusicUI(false); }, 700);
+      } else { playAmbient(); musicOn = true; updateMusicUI(true); }
+    }
+    function playAmbient() {
+      const ctx = audioCtx;
+      const notes = [261.63, 293.66, 329.63, 392, 440, 493.88, 523.25];
+      const patterns = [[0, 2, 4, 2, 1, 3, 5, 3], [2, 4, 6, 4, 3, 5, 4, 2]];
+      let pat = patterns[0], delay = 0, which = 0;
+
+      function sched() {
+        pat.forEach((n, i) => {
+          playNote(notes[n], 2.8, delay + i * .75);
+          playNote(notes[n] * 2, 2.8, delay + i * .75 + .25, .04);
+        });
+        delay += pat.length * .75;
+        which = (which + 1) % 2; pat = patterns[which];
+        if (musicOn && delay < 999) setTimeout(() => { if (musicOn) sched(); }, (pat.length * .75 - 1) * 1000);
+      }
+
+      function playNote(freq, dur, d, vol = .07) {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(gainNode);
+        o.type = 'sine'; o.frequency.value = freq;
+        g.gain.setValueAtTime(0, ctx.currentTime + d);
+        g.gain.linearRampToValueAtTime(vol, ctx.currentTime + d + .12);
+        g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + d + dur);
+        o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + dur + .15);
+      }
+
+      gainNode.gain.setTargetAtTime(.4, ctx.currentTime, 1.6);
+      sched();
+    }
+    function updateMusicUI(on) {
+      document.getElementById('music-btn').textContent = on ? '❚❚' : '♪';
+      document.getElementById('meq').classList.toggle('paused', !on);
+    }
+
+    // ── INIT ──
+    document.addEventListener('DOMContentLoaded', () => {
+      resizeBg();
+      window.addEventListener('resize', resizeBg);
+      particles = THEMES.night.particles();
+      requestAnimationFrame(drawBg);
+
+      setTimeout(() => {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('ch-cover').style.display = 'flex';
+        document.getElementById('nav-dots').classList.add('vis');
+        document.getElementById('music').classList.add('vis');
+      }, 2400);
     });
   </script>
+
+  <!-- confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
 </body>
+
 </html>
