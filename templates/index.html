@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sebuah kenangan yang diabadikan. Untuk {{ config.recipient_name }}, di hari yang istimewa.">
+  <meta name="robots" content="noindex, nofollow">
+
+  <title>Memory Book – The Last Letter &middot; {{ config.recipient_name }}</title>
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- AOS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+
+  <!-- Local CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <script>
+    // Config dari Flask ke JavaScript
+    window.__CONFIG = {
+      recipient_name: "{{ config.recipient_name }}",
+      sender_name:    "{{ config.sender_name }}",
+      birthday_date:  "{{ config.birthday_date }}"
+    };
+  </script>
+</head>
+
+<body>
+
+  <!-- Stars -->
+  <canvas id="stars-canvas"></canvas>
+
+  <!-- Page Transition Overlay -->
+  <div id="page-transition"></div>
+
+  <!-- ═══════════════════════════════════════
+       LOADING SCREEN
+  ══════════════════════════════════════════ -->
+  <div id="loading-screen">
+    <svg class="loading-quill" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 4C40 4 36 12 28 20C20 28 8 36 4 44" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M4 44C4 44 12 38 20 34C24 32 28 28 40 4" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.4" stroke-linecap="round"/>
+      <circle cx="40" cy="4" r="3" fill="#c9a84c" opacity="0.6"/>
+    </svg>
+    <div class="loading-text">Membuka kenangan</div>
+    <div class="loading-bar"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       MUSIC PLAYER
+  ══════════════════════════════════════════ -->
+  <div id="music-player">
+    <button id="music-btn" aria-label="Play / Pause music">
+      <i class="fas fa-music"></i>
+    </button>
+    <div class="music-eq paused">
+      <span></span><span></span><span></span>
+    </div>
+    <span class="music-label">Ambient</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PAGE PROGRESS
+  ══════════════════════════════════════════ -->
+  <nav id="page-progress" aria-label="Navigasi halaman"></nav>
+
+  <!-- ═══════════════════════════════════════
+       LIGHTBOX
+  ══════════════════════════════════════════ -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Tampilan foto besar">
+    <img class="lightbox-img" src="" alt="">
+    <button class="lightbox-close" aria-label="Tutup"><i class="fas fa-times"></i></button>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       COVER
+  ══════════════════════════════════════════ -->
+  <section id="cover" class="section" style="display:none">
+    <div class="cover-tagline">
+      Untuk seseorang yang hari ini bertambah usia
+    </div>
+
+    <div class="book-container" onclick="openBook()">
+      <div class="book">
+        <div class="book-spine"></div>
+        <div class="book-face">
+          <div class="book-ornament"><i class="fas fa-feather-alt"></i></div>
+          <div class="book-title">Memory Book</div>
+          <div class="book-subtitle">The Last Letter</div>
+        </div>
+        <div class="book-back"></div>
+        <div class="book-pages"></div>
+        <div class="book-glow"></div>
+      </div>
+    </div>
+
+    <div class="cover-cta">
+      <button class="btn-open-book" onclick="openBook()">
+        <i class="fas fa-book-open"></i>
+        Buka Buku
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       BAB 1: PROLOG
+  ══════════════════════════════════════════ -->
+  <section id="chapter1" class="section">
+    <div class="section-inner">
+      <div class="section-divider">
+        <div class="divider-line"></div>
+        <span class="divider-ornament"><i class="fas fa-feather-alt"></i></span>
+        <div class="divider-line right"></div>
+      </div>
+
+      <div class="chapter-label">Bab I</div>
+      <h2 class="chapter-title">Prolog</h2>
+
+      <div class="prolog-text" data-aos="fade-up">
+        <span id="typed-prolog"></span>
+      </div>
+
+      <div data-aos="fade-up" data-aos-delay="400" style="text-align:center">
+        <button class="btn-primary" onclick="scrollToSection('chapter2')">
+          Lanjutkan &nbsp;<i class="fas fa-chevron-down"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       BAB 2: TENTANG DIRIMU
+  ══════════════════════════════════════════ -->
+  <section id="chapter2" class="section">
+    <div class="section-inner">
+      <div class="section-divider">
+        <div class="divider-line"></div>
+        <span class="divider-ornament"><i class="fas fa-star"></i></span>
+        <div class="divider-line right"></div>
+      </div>
+
+      <div class="chapter-label">Bab II</div>
+      <h2 class="chapter-title">Tentang <em>Dirimu</em></h2>
+
+      <div class="cards-grid">
+        <div class="card" data-aos="fade-up" data-aos-delay="0">
+          <div class="card-icon"><i class="fas fa-moon"></i></div>
+          <div class="card-quote">"Kamu mungkin tidak sadar..."</div>
+          <div class="card-note">Bahwa ada hari-hari yang terasa lebih ringan hanya karena keberadaanmu di dalamnya.</div>
+        </div>
+
+        <div class="card" data-aos="fade-up" data-aos-delay="120">
+          <div class="card-icon"><i class="fas fa-heart"></i></div>
+          <div class="card-quote">"Kamu mungkin tidak pernah menyadarinya..."</div>
+          <div class="card-note">Tapi banyak hal baik terjadi bukan karena kebetulan — melainkan karena kamu ada.</div>
+        </div>
+
+        <div class="card" data-aos="fade-up" data-aos-delay="240">
+          <div class="card-icon"><i class="fas fa-sun"></i></div>
+          <div class="card-quote">"Caramu ada itu unik."</div>
+          <div class="card-note">Bukan karena kamu sempurna. Tapi karena kamu tidak pernah berpura-pura menjadi orang lain.</div>
+        </div>
+
+        <div class="card" data-aos="fade-up" data-aos-delay="360">
+          <div class="card-icon"><i class="fas fa-wind"></i></div>
+          <div class="card-quote">"Ada ketenangan yang kamu bawa."</div>
+          <div class="card-note">Mungkin kamu sendiri tidak merasakannya. Tapi orang-orang di sekitarmu merasakannya.</div>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:3rem" data-aos="fade-up">
+        <button class="btn-primary" onclick="scrollToSection('chapter3')">
+          Lihat Kenangan &nbsp;<i class="fas fa-images"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       BAB 3: GALERI KENANGAN
+  ══════════════════════════════════════════ -->
+  <section id="chapter3" class="section">
+    <div class="section-inner">
+      <div class="section-divider">
+        <div class="divider-line"></div>
+        <span class="divider-ornament"><i class="fas fa-camera-retro"></i></span>
+        <div class="divider-line right"></div>
+      </div>
+
+      <div class="chapter-label">Bab III</div>
+      <h2 class="chapter-title">Galeri <em>Kenangan</em></h2>
+
+      <div class="gallery-slider" data-aos="fade-up">
+        <div class="gallery-track">
+          <!-- Slides diisi JavaScript -->
+        </div>
+      </div>
+
+      <div class="gallery-controls" data-aos="fade-up">
+        <button class="gallery-btn prev" aria-label="Foto sebelumnya">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="gallery-dots"></div>
+        <button class="gallery-btn next" aria-label="Foto berikutnya">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div style="text-align:center; margin-top:2.5rem" data-aos="fade-up">
+        <button class="btn-primary" onclick="scrollToSection('chapter4')">
+          Lanjut &nbsp;<i class="fas fa-chevron-down"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       BAB 4: HALAMAN YANG HILANG
+  ══════════════════════════════════════════ -->
+  <section id="chapter4" class="section">
+    <div class="section-inner">
+      <div class="section-divider">
+        <div class="divider-line"></div>
+        <span class="divider-ornament"><i class="fas fa-ellipsis-h"></i></span>
+        <div class="divider-line right"></div>
+      </div>
+
+      <div class="chapter-label">Bab IV</div>
+      <h2 class="chapter-title">Halaman yang <em>Hilang</em></h2>
+
+      <div class="missing-intro">
+        "Beberapa kenangan tidak pernah sempat difoto.<br>
+        Tapi tetap tinggal di ingatan."
+      </div>
+
+      <div class="memory-list">
+        <div class="memory-item">
+          <div class="memory-text">Percakapan tengah malam yang tidak pernah dicatat di mana pun.</div>
+          <div class="memory-sub">Tapi masih terasa nyata.</div>
+        </div>
+        <div class="memory-item">
+          <div class="memory-text">Momen ketika kamu tertawa tapi matamu bercerita yang berbeda.</div>
+          <div class="memory-sub">Aku melihatnya.</div>
+        </div>
+        <div class="memory-item">
+          <div class="memory-text">Hari-hari biasa yang diam-diam terasa luar biasa hanya karena kamu ada.</div>
+          <div class="memory-sub">Tidak ada foto untuk itu.</div>
+        </div>
+        <div class="memory-item">
+          <div class="memory-text">Semua hal kecil yang tidak pernah terucap tapi selalu terasa.</div>
+          <div class="memory-sub">Tersimpan di sini.</div>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:3rem" data-aos="fade-up">
+        <button class="btn-primary" onclick="scrollToSection('chapter5')">
+          Ada Surat Untukmu &nbsp;<i class="fas fa-envelope"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       BAB 5: SURAT
+  ══════════════════════════════════════════ -->
+  <section id="chapter5" class="section">
+    <div class="section-inner">
+      <div class="section-divider">
+        <div class="divider-line"></div>
+        <span class="divider-ornament"><i class="fas fa-envelope-open-text"></i></span>
+        <div class="divider-line right"></div>
+      </div>
+
+      <div class="chapter-label">Bab V</div>
+      <h2 class="chapter-title" style="text-align:center">Surat yang Tidak<br>Pernah <em>Dikirim</em></h2>
+
+      <div class="envelope-wrapper" data-aos="zoom-in">
+        <div>
+          <div class="envelope" role="button" aria-label="Klik untuk membuka surat" tabindex="0">
+            <div class="envelope-body">
+              <div class="envelope-flap"></div>
+              <div class="envelope-seal"><i class="fas fa-feather-alt" style="font-size:0.7rem"></i></div>
+              <div class="envelope-lines">
+                <div class="envelope-line"></div>
+                <div class="envelope-line"></div>
+                <div class="envelope-line"></div>
+              </div>
+            </div>
+          </div>
+          <div class="envelope-label">Klik untuk membuka</div>
+        </div>
+      </div>
+
+      <div class="letter-content">
+        <div class="letter-greeting">Untuk {{ config.recipient_name }},</div>
+        <div class="letter-body">
+          <!-- Diisi JavaScript -->
+        </div>
+        <div class="letter-sign">— {{ config.sender_name }}</div>
+      </div>
+
+      <div style="text-align:center; margin-top:3rem" data-aos="fade-up">
+        <button class="btn-primary" onclick="scrollToSection('chapter6')">
+          Satu Tahun Terakhir &nbsp;<i class="fas fa-calendar"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       BAB 6: TIMELINE
+  ══════════════════════════════════════════ -->
+  <section id="chapter6" class="section">
+    <div class="section-inner">
+      <div class="section-divider">
+        <div class="divider-line"></div>
+        <span class="divider-ornament"><i class="fas fa-hourglass-half"></i></span>
+        <div class="divider-line right"></div>
+      </div>
+
+      <div class="chapter-label">Bab VI</div>
+      <h2 class="chapter-title">Satu Tahun <em>Terakhir</em></h2>
+
+      <div class="timeline">
+        <!-- Diisi JavaScript -->
+      </div>
+
+      <div style="text-align:center; margin-top:3rem" data-aos="fade-up">
+        <button class="btn-primary" onclick="scrollToSection('chapter7')">
+          Dan Ke Depannya &nbsp;<i class="fas fa-star"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       BAB 7: SURAT MASA DEPAN
+  ══════════════════════════════════════════ -->
+  <section id="chapter7" class="section">
+    <div class="section-inner">
+      <div class="section-divider">
+        <div class="divider-line"></div>
+        <span class="divider-ornament"><i class="fas fa-meteor"></i></span>
+        <div class="divider-line right"></div>
+      </div>
+
+      <div class="chapter-label">Bab VII</div>
+      <h2 class="chapter-title" style="text-align:center">Surat untuk <em>Masa Depan</em></h2>
+
+      <div class="wishes-container">
+        <div class="wish-item">
+          <div class="wish-prefix">Semoga di usia baru ini&hellip;</div>
+          <div class="wish-text">"Kamu menemukan lebih banyak alasan untuk tersenyum."</div>
+        </div>
+        <div class="wish-item">
+          <div class="wish-prefix">Semoga&hellip;</div>
+          <div class="wish-text">"Kamu berani mengejar mimpi yang selama ini hanya berani kamu bayangkan."</div>
+        </div>
+        <div class="wish-item">
+          <div class="wish-prefix">Semoga&hellip;</div>
+          <div class="wish-text">"Ada lebih banyak hari yang membuatmu bangga terhadap dirimu sendiri."</div>
+        </div>
+        <div class="wish-item">
+          <div class="wish-prefix">Dan yang terpenting&hellip;</div>
+          <div class="wish-text">"Semoga kamu selalu tahu bahwa ada yang peduli."</div>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:3rem" data-aos="fade-up">
+        <button class="btn-primary" onclick="scrollToSection('chapter8')">
+          Hampir Selesai &nbsp;<i class="fas fa-chevron-down"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       BAB 8: PENUTUP
+  ══════════════════════════════════════════ -->
+  <section id="chapter8" class="section">
+    <div class="section-inner" style="text-align:center">
+      <div class="section-divider">
+        <div class="divider-line"></div>
+        <span class="divider-ornament"><i class="fas fa-bookmark"></i></span>
+        <div class="divider-line right"></div>
+      </div>
+
+      <div class="chapter-label">Bab VIII</div>
+      <h2 class="chapter-title">Penutup</h2>
+
+      <div class="closing-text" data-aos="fade-up">
+        "Sebelum buku ini ditutup...<br>Ada satu hal terakhir."
+      </div>
+
+      <div data-aos="fade-up" data-aos-delay="300">
+        <button class="btn-primary" onclick="triggerFinal()" style="font-size:1.1rem; padding:1rem 2.5rem">
+          <i class="fas fa-eye"></i> &nbsp;Lihat
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       FINAL PAGE
+  ══════════════════════════════════════════ -->
+  <section id="final-page">
+    <div class="final-lines">
+      <div class="final-line">"Terima kasih sudah lahir."</div>
+      <div class="final-line">"Terima kasih sudah bertahan sejauh ini."</div>
+      <div class="final-line">"Terima kasih karena tetap menjadi dirimu."</div>
+    </div>
+
+    <div class="final-name">Selamat Ulang Tahun,<br>{{ config.recipient_name }}</div>
+
+    <div class="balloons" aria-hidden="true"></div>
+
+    <div style="margin-top:4rem; opacity:0; animation: fadeUp 1s 5s ease forwards">
+      <button class="btn-primary" onclick="triggerEnding()" style="font-size:1rem; padding:0.9rem 2rem">
+        <i class="fas fa-book"></i> &nbsp;Tutup Buku
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       ENDING
+  ══════════════════════════════════════════ -->
+  <section id="ending">
+    <div class="ending-book">
+      <div class="ending-text">
+        <div style="font-size:1.5rem; color: var(--gold); margin-bottom:0.5rem">
+          <i class="fas fa-feather-alt"></i>
+        </div>
+        Memory Book
+      </div>
+    </div>
+    <div class="ending-tamat">Tamat.</div>
+    <div class="ending-subtitle">
+      Sampai jumpa di ulang tahun berikutnya.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SCRIPTS
+  ══════════════════════════════════════════ -->
+
+  <!-- AOS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.min.js"></script>
+
+  <!-- Typed.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.16/typed.umd.js"></script>
+
+  <!-- canvas-confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- Main JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  <!-- GSAP Parallax init (after scripts loaded) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Subtle parallax on chapter titles
+        gsap.utils.toArray('.chapter-title').forEach(el => {
+          gsap.fromTo(el,
+            { y: 30, opacity: 0 },
+            {
+              y: 0, opacity: 1, duration: 1,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 85%',
+                toggleActions: 'play none none none'
+              }
+            }
+          );
+        });
+
+        // Parallax on stars canvas for depth
+        gsap.to('#stars-canvas', {
+          y: () => -window.scrollY * 0.15,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: 'body',
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: true
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
