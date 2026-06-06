@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # ─── Konfigurasi ─────────────────────────────────────────────────────────────
 CONFIG = {
-    "recipient_name": "Hana",
+    "recipient_name": "LUNA",
     "sender_name": "Seseorang yang peduli",
     "birthday_date": "7 Juni",
 }
