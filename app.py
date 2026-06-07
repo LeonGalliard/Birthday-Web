@@ -6,9 +6,9 @@ app = Flask(__name__)
 
 # ─── Konfigurasi ─────────────────────────────────────────────────────────────
 CONFIG = {
-    "recipient_name": "LUNA",
+    "recipient_name": "Nisa",
     "sender_name": "Seseorang yang peduli",
-    "birthday_date": "7 Juni",
+    "birthday_date": "9 Juni",
 }
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
