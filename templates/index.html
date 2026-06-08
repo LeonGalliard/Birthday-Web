@@ -327,8 +327,8 @@
 
     /* ── CHAPTER HEADER ── */
     .ch-label {
-      font-size: .62rem;
-      letter-spacing: .45em;
+      font-size: 1.5rem;
+      letter-spacing: .25em;
       text-transform: uppercase;
       color: var(--accent, #4a3a18);
       font-family: 'Cormorant Garamond', serif;
@@ -450,7 +450,7 @@
 
     .g-slide img {
       width: 100%;
-      height: 420px;
+      height: 1500px;
       object-fit: cover;
       display: block;
       filter: brightness(.82) saturate(1.1)
@@ -1238,7 +1238,7 @@
   <div id="music">
     <button id="music-btn" onclick="toggleMusic()">♪</button>
     <div class="meq paused" id="meq"><span></span><span></span><span></span></div>
-    <span class="mlbl">Ambient</span>
+    <span class="mlbl">Play!</span>
   </div>
 
   <!-- Nav dots -->
@@ -1307,24 +1307,23 @@
       <div class="cards-grid">
         <div class="card">
           <div class="card-icon" style="color:#e8843a">☽</div>
-          <div class="card-quote">"Kamu mungkin tidak sadar..."</div>
-          <div class="card-note">Bahwa ada hari-hariku terasa lebih ringan hanya karena keberadaanmu di dalamnya.
+          <div class="card-quote">"Kamu pasti bilang "apalah""</div>
+          <div class="card-note">Tapi hari-hariku terasa lebih ringan karena ada kamu di sana.
           </div>
         </div>
         <div class="card">
           <div class="card-icon" style="color:#e8843a">♡</div>
-          <div class="card-quote">"Kamu mungkin tidak pernah menyadarinya..."</div>
-          <div class="card-note">Tapi banyak hal baik terjadi bukan karena kebetulan — melainkan karena kamu ada.</div>
+          <div class="card-quote">"Kamu mungkin membatin "Alay"</div>
+          <div class="card-note">Tapi banyak hal baik terjadi karena kamu ada di situ</div>
         </div>
         <div class="card">
           <div class="card-icon" style="color:#e8843a">☀</div>
-          <div class="card-quote">"Cara kamu ada itu unik."</div>
-          <div class="card-note">Bukan karena kamu sempurna. Tapi karena kamu tidak pernah berpura-pura menjadi orang
-            lain.</div>
+          <div class="card-quote">"Kamu selalu sempurna di mataku."</div>
+          <div class="card-note">Happy, moody-an, sedih, marah, tegar, manja, buatku kamu selalu perfect.</div>
         </div>
         <div class="card">
           <div class="card-icon" style="color:#e8843a">∼</div>
-          <div class="card-quote">"Ada ketenangan yang kamu bawa."</div>
+          <div class="card-quote">"Ada "something" yang tentang kehadiranmu."</div>
           <div class="card-note">Mungkin kamu sendiri tidak merasakannya. Tapi orang-orang di sekitarmu merasakannya.
           </div>
         </div>
@@ -1350,33 +1349,33 @@
       <h2 class="ch-title" style="--accent-bright:#a0e89c">Galeri <em>Kenangan</em></h2>
       <p
         style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:#5a8a54;text-align:center;letter-spacing:.2em;text-transform:uppercase;margin-bottom:2rem;font-style:italic">
-        ✿ Musim Semi — saat segalanya mekar kembali ✿</p>
+      </p>
 
       <div class="gallery-wrap">
         <div class="gallery-track" id="gallery-track">
           <div class="g-slide">
-            <img src="https://picsum.photos/seed/spring1/900/520" alt="kenangan">
+            <img src="{{ url_for('static', filename='image/1.jpeg') }}" alt="kenangan">
             <div class="g-caption">
               <h3>I still vividly remember this day.</h3>
-              <p>Mungkin kamu sudah lupa. Tapi aku tidak.</p>
+              <p>You look elegant.</p>
             </div>
           </div>
           <div class="g-slide">
-            <img src="https://picsum.photos/seed/garden2/900/520" alt="kenangan">
+            <img src="{{ url_for('static', filename='image/2.jpeg') }}" alt="kenangan">
             <div class="g-caption">
               <h3>This is one of my favorite moments.</h3>
-              <p>Your smile that day was so genuine.</p>
+              <p>I love that you always know how to pose for a photo</p>
             </div>
           </div>
           <div class="g-slide">
-            <img src="https://picsum.photos/seed/flower3/900/520" alt="kenangan">
+            <img src="{{ url_for('static', filename='image/3.jpeg') }}" alt="kenangan">
             <div class="g-caption">
-              <h3>Time flies.</h3>
-              <p>But this memory still feels like yesterday.</p>
+              <h3>This one is my favorite.</h3>
+              <p>I feel like I can truly see you in this photo.</p>
             </div>
           </div>
           <div class="g-slide">
-            <img src="https://picsum.photos/seed/bloom4/900/520" alt="kenangan">
+            <img src="{{ url_for('static', filename='image/4.jpeg') }}" alt="kenangan">
             <div class="g-caption">
               <h3>You don't always see how precious you are.</h3>
               <p>But I can.</p>
@@ -1419,10 +1418,10 @@
       <div class="memory-list">
         <div class="memory-item" style="--accent-bright:#9080e8">
           <div class="memory-text">Percakapan tengah malam yang ku harap bisa kualami kembali.</div>
-          <div class="memory-sub">Tapi ku tahu itu tidak untuk diulangi, namun dibuat di kemudian hari.</div>
+          <div class="memory-sub">Tapi ku tahu itu tidak untuk diulangi, namun perlu dibuat di kemudian hari.</div>
         </div>
         <div class="memory-item">
-          <div class="memory-text">Momen ketika kamu tertawa namun bukan bahagia yang kau rasa.</div>
+          <div class="memory-text">Momen ketika kamu mencoba tegar hanya untuk membuatku merasa aman.</div>
           <div class="memory-sub">Aku melihatnya.</div>
         </div>
         <div class="memory-item">
@@ -1430,8 +1429,9 @@
           <div class="memory-sub">Tidak selalu tertangkap kamera.</div>
         </div>
         <div class="memory-item">
-          <div class="memory-text">Semua hal kecil yang tidak pernah terucap tapi selalu terasa.</div>
-          <div class="memory-sub">Tersimpan di sini.</div>
+          <div class="memory-text">Semua yang kita alami bersama.</div>
+          <div class="memory-sub">Tersimpan di hati. My brain may not able to hold all the memories. But the feelings
+            are real</div>
         </div>
       </div>
       <div style="text-align:center;margin-top:3.5rem">
@@ -1486,7 +1486,7 @@
             my life.</p>
           <p><em>Happy birthday, my love! I hope that this day truly belongs to you.</em></p>
         </div>
-        <div class="letter-sign">— Seseorang yang peduli</div>
+        <div class="letter-sign">— Pengagummu, Aldi</div>
       </div>
     </div>
   </section>
@@ -2053,54 +2053,31 @@
     };
 
     // ── MUSIC ──
-    let audioCtx, gainNode, musicOn = false;
+    let audioPlayer = null;
+    let musicOn = false;
+
     function toggleMusic() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        gainNode = audioCtx.createGain(); gainNode.gain.value = 0;
-        gainNode.connect(audioCtx.destination);
-        playAmbient(); musicOn = true; updateMusicUI(true); return;
+      if (!audioPlayer) {
+        audioPlayer = new Audio('/static/audio/audio.m4a');
+        audioPlayer.loop = true;
+        audioPlayer.volume = 0.4;
       }
+
       if (musicOn) {
-        gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, .6);
-        setTimeout(() => { musicOn = false; updateMusicUI(false); }, 700);
-      } else { playAmbient(); musicOn = true; updateMusicUI(true); }
-    }
-    function playAmbient() {
-      const ctx = audioCtx;
-      const notes = [261.63, 293.66, 329.63, 392, 440, 493.88, 523.25];
-      const patterns = [[0, 2, 4, 2, 1, 3, 5, 3], [2, 4, 6, 4, 3, 5, 4, 2]];
-      let pat = patterns[0], delay = 0, which = 0;
-
-      function sched() {
-        pat.forEach((n, i) => {
-          playNote(notes[n], 2.8, delay + i * .75);
-          playNote(notes[n] * 2, 2.8, delay + i * .75 + .25, .04);
-        });
-        delay += pat.length * .75;
-        which = (which + 1) % 2; pat = patterns[which];
-        if (musicOn && delay < 999) setTimeout(() => { if (musicOn) sched(); }, (pat.length * .75 - 1) * 1000);
+        audioPlayer.pause();
+        musicOn = false;
+        updateMusicUI(false);
+      } else {
+        audioPlayer.play();
+        musicOn = true;
+        updateMusicUI(true);
       }
-
-      function playNote(freq, dur, d, vol = .07) {
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.connect(g); g.connect(gainNode);
-        o.type = 'sine'; o.frequency.value = freq;
-        g.gain.setValueAtTime(0, ctx.currentTime + d);
-        g.gain.linearRampToValueAtTime(vol, ctx.currentTime + d + .12);
-        g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + d + dur);
-        o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + dur + .15);
-      }
-
-      gainNode.gain.setTargetAtTime(.4, ctx.currentTime, 1.6);
-      sched();
     }
+
     function updateMusicUI(on) {
       document.getElementById('music-btn').textContent = on ? '❚❚' : '♪';
       document.getElementById('meq').classList.toggle('paused', !on);
     }
-
     // ── INIT ──
     document.addEventListener('DOMContentLoaded', () => {
       resizeBg();

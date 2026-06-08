@@ -1,25 +1,21 @@
 [
   {
-    "src": "/static/images/photo1.jpg",
-    "placeholder": "https://picsum.photos/seed/mem1/800/600",
+    "src": "data\\image\\1.jpeg",
     "caption": "Aku masih mengingat hari ini.",
     "note": "Mungkin kamu sudah lupa. Tapi aku tidak."
   },
   {
-    "src": "/static/images/photo2.jpg",
-    "placeholder": "https://picsum.photos/seed/mem2/800/600",
+    "src": "data\\image\\2.jpeg",
     "caption": "Ini salah satu momen favoritku.",
     "note": "Senyummu waktu itu tulus sekali."
   },
   {
-    "src": "/static/images/photo3.jpg",
-    "placeholder": "https://picsum.photos/seed/mem3/800/600",
+    "src": "data\\image\\3.jpeg",
     "caption": "Waktu berjalan begitu cepat.",
     "note": "Tapi kenangan ini terasa seperti kemarin."
   },
   {
-    "src": "/static/images/photo4.jpg",
-    "placeholder": "https://picsum.photos/seed/mem4/800/600",
+    "src": "data\\image\\4.jpeg",
     "caption": "Kamu tidak selalu bisa melihat betapa berharganya dirimu.",
     "note": "Tapi aku bisa."
   }
